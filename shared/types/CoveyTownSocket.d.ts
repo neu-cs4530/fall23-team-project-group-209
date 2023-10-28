@@ -223,3 +223,59 @@ export interface ClientToServerEvents {
   interactableUpdate: (update: Interactable) => void;
   interactableCommand: (command: InteractableCommand & InteractableCommandBase) => void;
 }
+
+/*
+ * UNO Game Types
+ */
+
+/**
+ * Types of colors of card
+ */
+export type CardColor = 'Blue' | 'Green' | 'Red' | 'Yellow' | 'Wildcard'
+
+/**
+ * Suits of UNO Card
+ */
+export type UNOSuit = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | '+2' | '+4' | 'Skip' | 'Reverse' | 'ChangeColor'
+
+/**
+ * Card type
+ */
+export interface Card {
+  color: CardColor;
+  rank: UNOSuit;
+}
+
+export interface UNOPlayer {
+  playerID: PlayerID;
+  gameID?: GameInstanceID; // do we need this
+  cards: ReadonlyArray<Card>;
+}
+
+/**
+ * Type for a move in UNO
+ * 
+ * export interface TicTacToeMove {
+  gamePiece: 'X' | 'O';
+  row: TicTacToeGridPosition;
+  col: TicTacToeGridPosition;
+}
+ */
+export interface UNOMove {
+  player: PlayerID;
+  pickedUpCard: boolean;
+  card?: Card;
+}
+
+/**
+ * Type for the state of an UNO game
+ * The players are stored in a read only array, up to 4 players.
+ */
+export interface UNOGameState extends WinnableGameState {
+  moves: ReadonlyArray<UNOMove>;
+  deck: ReadonlyArray<Card>;
+  players: ReadonlyArray<UNOPlayer>;
+  topCard: Card;
+  cardsToBePickedUp: number | undefined; // do we need this
+  isPractice: boolean; // is the game being played with an AI?
+}
