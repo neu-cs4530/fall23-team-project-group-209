@@ -3,7 +3,9 @@ import { GameMove, UNOGameState, UNOMove } from '../../types/CoveyTownSocket';
 import Game from './Game';
 
 export default class UNOGame extends Game<UNOGameState, UNOMove> {
-  public applyMove(move: GameMove<UNOMove>): void {}
+  public applyMove(move: GameMove<UNOMove>): void {
+    // testing commit integrity
+  }
 
   public _join(player: Player): void {}
 
