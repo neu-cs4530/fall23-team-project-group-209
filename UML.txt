@@ -1,0 +1,11 @@
+our uml for our database only consists of one type of entity, a player
+
+Player
+id  integer
+name varChar(255)
+wins integer
+losses integer
+
+
+our database must support the ability to add a new player,
+and update a players wins and losses
