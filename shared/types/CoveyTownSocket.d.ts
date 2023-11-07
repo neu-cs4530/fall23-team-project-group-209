@@ -291,8 +291,12 @@ export interface UNOPlayer {
  */
 export interface UNOMove {
   player: PlayerID;
-  pickedUpCard: boolean;
+  name: string,
   card?: Card;
+}
+
+export interface UNOPlayerDeck {
+
 }
 
 /**
@@ -303,9 +307,7 @@ export interface UNOMove {
  */
 export interface UNOGameState extends WinnableGameState {
   moves: ReadonlyArray<UNOMove>;
-  deck: ReadonlyArray<Card>;
+  deck: ReadonlyArray<Card>; // maybe not readonly, also may mutate once deck is ended -> shuffle deck.
   players: ReadonlyArray<UNOPlayer>;
   topCard: Card;
-  cardsToBePickedUp: number | undefined; // do we need this
-  isPractice: boolean; // is the game being played with an AI?
 }
