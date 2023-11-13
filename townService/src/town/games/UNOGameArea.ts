@@ -16,6 +16,6 @@ export default class TicTacToeGameArea extends GameArea<UNOGame> {
     command: CommandType,
     player: Player,
   ): InteractableCommandReturnType<CommandType> {
-    return null;
+    return undefined;
   }
 }
