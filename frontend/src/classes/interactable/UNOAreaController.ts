@@ -1,7 +1,7 @@
 import { UNOGameState } from '../../types/CoveyTownSocket';
 import GameAreaController, { GameEventTypes } from './GameAreaController';
 
-export type TicTacToeEvents = GameEventTypes & {
+export type UNOEvents = GameEventTypes & {
   turnChanged: (isOurTurn: boolean) => void;
   deckChanged: () => void;
   orderChanged: () => void; // do we need this
