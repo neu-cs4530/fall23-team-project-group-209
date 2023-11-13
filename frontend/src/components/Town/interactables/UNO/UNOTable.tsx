@@ -6,8 +6,9 @@ import PlayerController from '../../../../classes/PlayerController';
 import useTownController from '../../../../hooks/useTownController';
 import { Card as PlayerCard } from '../../../../types/CoveyTownSocket';
 
+// null FOR NOW
 export type UNOGameProps = {
-  gameAreaController: UNOAreaController;
+  gameAreaController?: UNOAreaController;
 };
 
 // function to create front card sprite
@@ -22,14 +23,17 @@ function RenderOpponentCards({ count }: { count: number }): JSX.Element {
 }
 
 // function to create our player in view
+// onClick takes card index and sends to controller
+// disable pressing cards on not our turn
 function RenderPlayer({ username, cards }: { username: string; cards: PlayerCard[] }) {
+  let onCardClick: (index: number) => void;
   return (
     <Container>
       <VStack>
         <b>{username}</b>
         <HStack>
           {cards.map((card, index) => (
-            <RenderCard key={index} card={card} />
+            <RenderCard key={index} card={card} onClick={() => onCardClick(index)} />
           ))}
         </HStack>
       </VStack>
@@ -56,9 +60,10 @@ function RenderArrows(order: PlayerController, reversed: boolean) {
   return;
 }
 
-// renders the deck that cards will be pulled from (decorative)
-function RenderDeck(): JSX.Element {
-  return <Card raised={true}></Card>;
+// renders the deck that cards will be pulled from
+// onClick to draw from deck
+function RenderDeck({ onClick }: { onClick: () => void }): JSX.Element {
+  return <Card raised={true} onClick={onClick}></Card>;
 }
 
 /**
@@ -79,18 +84,21 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
       //todo
     };
     //listeners from controller TODO
-    gameAreaController.addListener('', updateGame);
-    gameAreaController.addListener('', endGame);
+    // gameAreaController.addListener('', updateGame);
+    // gameAreaController.addListener('', endGame);
     //TODO
     return () => {
       //gameAreaController.removeListener();
     };
-  }, [gameAreaController]);
+  }, [gameAreaController, townAreaController]);
 
-  const player1Name = gameAreaController.players.at(0)?.userName ?? '';
-  const player2Name = gameAreaController.players.at(1)?.userName ?? '';
-  const player3Name = gameAreaController.players.at(2)?.userName ?? '';
-  const player4Name = gameAreaController.players.at(3)?.userName ?? '';
+  // find our player, then move other players around for orientation
+  // use mod
+
+  // const player1Name = gameAreaController.players.at(0)?.userName ?? '';
+  // const player2Name = gameAreaController.players.at(1)?.userName ?? '';
+  // const player3Name = gameAreaController.players.at(2)?.userName ?? '';
+  // const player4Name = gameAreaController.players.at(3)?.userName ?? '';
 
   // todo figure out how to handle the order where current player is static at the bottom
 
@@ -114,42 +122,51 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
 
   //PLACEHOLDERS
   let topCard: PlayerCard;
-  const view = () => {
-    switch (gameAreaController.players.length) {
-      case 2:
-        <VStack>
-          <RenderOpponent username={player2Name} cardCount={} />
-          <HStack>
-            <RenderCard card={topCard} />
-            <RenderDeck />
-          </HStack>
-          <RenderPlayer username={townAreaController.ourPlayer.userName} cards={} />
-        </VStack>;
-        break;
-      case 3:
-        <VStack>
-          <></>
-          <HStack>
-            <RenderOpponent username={player3Name} cardCount={} />
-            <RenderCard card={topCard} />
-            <RenderDeck />
-            <RenderOpponent username={player2Name} cardCount={} />
-          </HStack>
-          <RenderPlayer username={townAreaController.ourPlayer.userName} cards={} />
-        </VStack>;
-        break;
+  let cardCount: number;
+  let cards: PlayerCard[];
+  let onDeckClick: () => void;
+  const playerCount = 4; // another placeholder
+  const View = () => {
+    switch (playerCount) {
+      // case 2:
+      //   return (
+      //     <VStack>
+      //       <RenderOpponent username={'debug'} cardCount={cardCount} />
+      //       <HStack>
+      //         <RenderCard card={topCard} />
+      //         <RenderDeck onClick={onDeckClick} />
+      //       </HStack>
+      //       <RenderPlayer username={townAreaController.ourPlayer.userName} cards={cards} />
+      //     </VStack>
+      //   );
+      // case 3:
+      //   return (
+      //     <VStack>
+      //       <></>
+      //       <HStack>
+      //         <RenderOpponent username={player3Name} cardCount={cardCount} />
+      //         <RenderCard card={topCard} />
+      //         <RenderDeck onClick={onDeckClick} />
+      //         <RenderOpponent username={player2Name} cardCount={cardCount} />
+      //       </HStack>
+      //       <RenderPlayer username={townAreaController.ourPlayer.userName} cards={cards} />
+      //     </VStack>
+      //   );
       case 4:
-        <VStack>
-          <RenderOpponent username={player3Name} cardCount={} />
-          <HStack>
-          <RenderOpponent username={player4Name} cardCount={} />
-            <RenderCard card={topCard} />
-            <RenderDeck />
-            <RenderOpponent username={player2Name} cardCount={} />
-          </HStack>
-          <RenderPlayer username={townAreaController.ourPlayer.userName} cards={} />
-        </VStack>;
-        break;
+        return (
+          <VStack>
+            <RenderOpponent username={'debug'} cardCount={cardCount} />
+            <HStack>
+              <RenderOpponent username={'another test a long test'} cardCount={cardCount} />
+              <RenderCard card={topCard} />
+              <RenderDeck onClick={onDeckClick} />
+              <RenderOpponent username={'test'} cardCount={cardCount} />
+            </HStack>
+            <RenderPlayer username={townAreaController.ourPlayer.userName} cards={cards} />
+          </VStack>
+        );
+      default:
+        return <></>;
     }
   };
 
@@ -157,7 +174,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
     <Container>
       <VStack>
         {/* header goes here */}
-        {view}
+        {View}
       </VStack>
     </Container>
   );

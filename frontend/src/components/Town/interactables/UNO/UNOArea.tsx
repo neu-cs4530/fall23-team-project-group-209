@@ -1,11 +1,26 @@
-import { Card as PlayerCard, GameResult, GameStatus, InteractableID, Player } from '../../../../../../shared/types/CoveyTownSocket';
-import React, { useEffect, useState } from 'react';
-import { useInteractableAreaController } from '../../../../classes/TownController';
+import {
+  Card as PlayerCard,
+  GameResult,
+  GameStatus,
+  InteractableID,
+  Player,
+} from '../../../../../../shared/types/CoveyTownSocket';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useInteractable, useInteractableAreaController } from '../../../../classes/TownController';
 import UNOAreaController from '../../../../classes/interactable/UNOAreaController';
 import PlayerController from '../../../../classes/PlayerController';
-import { useToast } from '@chakra-ui/react';
+import {
+  Modal,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
+  useToast,
+} from '@chakra-ui/react';
 import useTownController from '../../../../hooks/useTownController';
-import { Card } from '@material-ui/core';
+import TicTacToeArea from '../TicTacToe/TicTacToeArea';
+import GameAreaInteractable from '../GameArea';
+import UNOTable from './UNOTable';
 
 /**
  * Overall UNO frontend area that allows for the player to join a game,
@@ -15,12 +30,12 @@ import { Card } from '@material-ui/core';
  * @returns
  */
 function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.Element {
-  const gameAreaController = useInteractableAreaController<UNOAreaController>(interactableID);
+  //const gameAreaController = useInteractableAreaController<UNOAreaController>(interactableID);
   const townController = useTownController();
   // states to hold values
-  const [history, setHistory] = useState<GameResult[]>(gameAreaController.history);
-  const [status, setGameStatus] = useState<GameStatus>(gameAreaController.status);
-  const [observers, setObservers] = useState<PlayerController[]>(gameAreaController.observers);
+  // const [history, setHistory] = useState<GameResult[]>(gameAreaController.history);
+  // const [status, setGameStatus] = useState<GameStatus>(gameAreaController.status);
+  // const [observers, setObservers] = useState<PlayerController[]>(gameAreaController.observers);
 
   // toast to provide info to user (game over, connection issue)
   const toast = useToast();
@@ -29,24 +44,56 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
     //functions to update states
     const updateGame = () => {
       //todo
-      setHistory(gameAreaController.history);
-      setGameStatus(gameAreaController.status || 'WAITING_TO_START');
-      setObservers(gameAreaController.observers);
+      // setHistory(gameAreaController.history);
+      // setGameStatus(gameAreaController.status || 'WAITING_TO_START');
+      // setObservers(gameAreaController.observers);
     };
     const endGame = () => {
       //add toast
     };
     //listeners from controller
-    gameAreaController.addListener('gameUpdated', updateGame);
-    gameAreaController.addListener('gameEnded', endGame);
+    // gameAreaController.addListener('gameUpdated', updateGame);
+    // gameAreaController.addListener('gameEnded', endGame);
     //TODO
     return () => {
-      gameAreaController.removeListener('gameUpdated', updateGame);
-      gameAreaController.removeListener('gameEnded', endGame);
+      // gameAreaController.removeListener('gameUpdated', updateGame);
+      // gameAreaController.removeListener('gameEnded', endGame);
     };
-  }, [gameAreaController, townController]);
+  }, [townController]);
 
   // if waiting to start, return the join game screen.
   // otherwise, render the uno table.
+  return <UNOTable></UNOTable>;
+}
+
+/**
+ * A wrapper component for the TicTacToeArea component.
+ * Determines if the player is currently in a tic tac toe area on the map, and if so,
+ * renders the TicTacToeArea component in a modal.
+ *
+ */
+export default function UNOAreaWrapper(): JSX.Element {
+  const gameArea = useInteractable<GameAreaInteractable>('gameArea');
+  const townController = useTownController();
+  const closeModal = useCallback(() => {
+    if (gameArea) {
+      townController.interactEnd(gameArea);
+      const controller = townController.getGameAreaController(gameArea);
+      controller.leaveGame();
+    }
+  }, [townController, gameArea]);
+
+  if (gameArea && gameArea.getData('type') === 'UNO') {
+    return (
+      <Modal isOpen={true} onClose={closeModal} closeOnOverlayClick={false}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>{gameArea.name}</ModalHeader>
+          <ModalCloseButton />
+          <UNOArea interactableID={gameArea.name} />;
+        </ModalContent>
+      </Modal>
+    );
+  }
   return <></>;
 }
