@@ -174,7 +174,7 @@ interface InteractableCommandBase {
   type: string;
 }
 
-export type InteractableCommand =  ViewingAreaUpdateCommand | JoinGameCommand | GameMoveCommand<TicTacToeMove> | LeaveGameCommand;
+export type InteractableCommand =  ViewingAreaUpdateCommand | JoinGameCommand | GameMoveCommand<TicTacToeMove> | LeaveGameCommand | StartGameCommand | GameMoveCommand<UNOMove> | GameMoveCommand<UNOPickUp>;
 export interface ViewingAreaUpdateCommand  {
   type: 'ViewingAreaUpdate';
   update: ViewingArea;
@@ -190,6 +190,11 @@ export interface GameMoveCommand<MoveType> {
   type: 'GameMove';
   gameID: GameInstanceID;
   move: MoveType;
+}
+
+export interface StartGameCommand {
+  type: 'StartGame';
+  gameID: GameInstanceID;
 }
 export type InteractableCommandReturnType<CommandType extends InteractableCommand> = 
   CommandType extends JoinGameCommand ? { gameID: string}:
@@ -263,8 +268,12 @@ export interface UNOPlayer {
  */
 export interface UNOMove {
   player: PlayerID;
-  pickedUpCard: boolean;
-  card?: Card;
+  card: Card;
+}
+
+export interface UNOPickUp {
+  player: PlayerID;
+
 }
 
 /**
