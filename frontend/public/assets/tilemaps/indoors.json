@@ -550,7 +550,7 @@
                         {
                          "name":"type",
                          "type":"string",
-                         "value":"UNO"
+                         "value":"TicTacToe"
                         }],
                  "rotation":0,
                  "type":"GameArea",

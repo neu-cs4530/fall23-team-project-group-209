@@ -26,10 +26,9 @@ import UNOTable from './UNOTable';
  * Overall UNO frontend area that allows for the player to join a game,
  * start a game, optionally add AI opponent(s), and finish the game.
  * Also contains the leaderboard.
- * @param param0
  * @returns
  */
-function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.Element {
+function UNOArea({ interactableID }: { interactableID?: InteractableID }): JSX.Element {
   //const gameAreaController = useInteractableAreaController<UNOAreaController>(interactableID);
   const townController = useTownController();
   // states to hold values
@@ -63,7 +62,7 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
 
   // if waiting to start, return the join game screen.
   // otherwise, render the uno table.
-  return <UNOTable></UNOTable>;
+  return <UNOTable />;
 }
 
 /**
@@ -83,17 +82,17 @@ export default function UNOAreaWrapper(): JSX.Element {
     }
   }, [townController, gameArea]);
 
-  if (gameArea && gameArea.getData('type') === 'UNO') {
-    return (
-      <Modal isOpen={true} onClose={closeModal} closeOnOverlayClick={false}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>{gameArea.name}</ModalHeader>
-          <ModalCloseButton />
-          <UNOArea interactableID={gameArea.name} />;
-        </ModalContent>
-      </Modal>
-    );
-  }
+  // if (gameArea && gameArea.getData('type') === 'UNO') {
+  return (
+    <Modal size={'xl'} isOpen={true} onClose={closeModal} closeOnOverlayClick={false}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>{'UNO Test'}</ModalHeader>
+        <ModalCloseButton />
+        <UNOArea />
+      </ModalContent>
+    </Modal>
+  );
+  // }
   return <></>;
 }

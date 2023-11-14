@@ -9,13 +9,13 @@ import UNOGame from './UNOGame';
 
 export default class TicTacToeGameArea extends GameArea<UNOGame> {
   protected getType(): InteractableType {
-    return null;
+    return 'UNOArea';
   }
 
   public handleCommand<CommandType extends InteractableCommand>(
     command: CommandType,
     player: Player,
   ): InteractableCommandReturnType<CommandType> {
-    return undefined;
+    return null;
   }
 }
