@@ -18,7 +18,6 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import useTownController from '../../../../hooks/useTownController';
-import TicTacToeArea from '../TicTacToe/TicTacToeArea';
 import GameAreaInteractable from '../GameArea';
 import UNOTable from './UNOTable';
 
