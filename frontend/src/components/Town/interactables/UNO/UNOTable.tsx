@@ -1,5 +1,5 @@
 import { Box, HStack, VStack } from '@chakra-ui/react';
-import { Card, Container } from '@material-ui/core';
+import { Container } from '@material-ui/core';
 import React, { useEffect } from 'react';
 import UNOAreaController from '../../../../classes/interactable/UNOAreaController';
 import PlayerController from '../../../../classes/PlayerController';
@@ -20,7 +20,9 @@ function RenderCard({ card, onClick }: { card: PlayerCard; onClick: () => void }
       borderRadius='3px'
       paddingX='15px'
       paddingY='18px'
+      maxH={59}
       outline='solid'
+      outlineColor='black'
       bg={card.color}
       textColor='white'
       onClick={onClick}>
@@ -36,6 +38,7 @@ function RenderOpponentCards({ count }: { count: number }): JSX.Element {
       textAlign='center'
       borderRadius='3px'
       paddingX='15px'
+      maxH={59}
       paddingY='18px'
       outline='solid'
       bg='lightgray'>
@@ -76,6 +79,7 @@ function RenderOpponent({ username, cardCount }: { username: string; cardCount: 
   );
 }
 
+// TODO:
 // renders the arrows that denote whose turn it is
 // and what direction the game is moving in
 function RenderArrows(order: PlayerController, reversed: boolean) {
@@ -89,12 +93,14 @@ function RenderDeck({ onClick }: { onClick: () => void }): JSX.Element {
     <Box
       textAlign='center'
       borderRadius='3px'
-      paddingX='15px'
+      maxH={59}
+      paddingX='19px'
       paddingY='18px'
       outline='solid'
-      bg={'lightgray'}
-      onClick={onClick}
-    />
+      bg='lightgray'
+      onClick={onClick}>
+      {''}
+    </Box>
   );
 }
 
@@ -155,7 +161,11 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
   //PLACEHOLDERS
   const topCard: PlayerCard = { color: 'Blue', rank: 3 };
   const cardCount = 13;
-  const cards: PlayerCard[] = [{ color: 'Green', rank: 9 }];
+  const cards: PlayerCard[] = [
+    { color: 'Green', rank: 9 },
+    { color: 'Red', rank: 6 },
+    { color: 'Blue', rank: +2 },
+  ];
   let onDeckClick: () => void;
   const playerCount = 4; // another placeholder
   function View(): JSX.Element {
@@ -186,9 +196,9 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
       //   );
       case 4:
         return (
-          <VStack maxH={'full'} padding={0}>
+          <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
             <RenderOpponent username={'debug'} cardCount={cardCount} />
-            <HStack maxW={'full'} padding={0} spacing={'60px'} align='stretch'>
+            <HStack minW='full' spacing='100px' align='stretch'>
               <RenderOpponent username={'another test a long test'} cardCount={cardCount} />
               <RenderCard card={topCard} onClick={() => {}} />
               <RenderDeck onClick={onDeckClick} />
