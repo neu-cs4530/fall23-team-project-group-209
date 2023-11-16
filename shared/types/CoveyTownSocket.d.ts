@@ -232,6 +232,37 @@ export interface ClientToServerEvents {
 
 /*
  * UNO Game Types
+ * The following info is necessary to properly handle the UNO model. There are 108 cards and the following will 
+ * Represent them and how they are handled.
+ * There are the following card types:
+ * Number Cards, Action Cards, and Draw Cards
+ * 
+ * NUMBER CARDS:
+ * There are 76 number cards, of which there are four color sets: 
+ * red, green, yellow, blue
+ * 
+ * Each of these sets has one '0' card and two of each number from '1' to '9'
+ * 
+ * ACTION CARDS:
+ * Each color set has two of each action card:
+ * Skip: The next player in sequence misses a turn.
+ * Reverse: The direction of play changes (clockwise to counterclockwise, or vice versa).
+ * The game starts clockwise, btw.
+ * 
+ * The following are considered action cards but are separate from the color sets.
+ * Wild: There are four of these cards in a deck, and they can be played regardless of the color in play. 
+ * The player who plays it gets to choose the color that continues play.
+ * 
+ * DRAW CARDS:
+ * Draw cards add cards to the draw stack. If the subsequent player does not have a draw card they must draw the 
+ * ENTIRE draw stack. 
+ * 
+ * Each color set has two of the following:
+ * Draw Two: The card adds two cards to the draw stack. Can only be played if the corresponding color or a wildcard is the 
+ * last card played.
+ * 
+ * Wild Draw Four: There are also four of these cards in a deck.
+ * This card can be played at all times. 
  */
 
 /**
@@ -242,30 +273,26 @@ export type CardColor = 'Blue' | 'Green' | 'Red' | 'Yellow' | 'Wildcard'
 /**
  * Suits of UNO Card
  */
-export type UNOSuit = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | '+2' | '+4' | 'Skip' | 'Reverse' | 'ChangeColor'
+export type UNOSuit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | '+2' | '+4' | 'Skip' | 'Reverse' | 'Wild'
 
 /**
  * Card type
+ * Later will need to add valid card and valid deck checker.
  */
 export interface Card {
   color: CardColor;
   rank: UNOSuit;
 }
 
-export interface UNOPlayer {
-  playerID: PlayerID;
-  gameID?: GameInstanceID; // do we need this
-  cards: ReadonlyArray<Card>;
+export interface UNOPlayer extends Player {
+  gameID?: GameInstanceID; // do we need this. I think so.
+  cards: Card[];
 }
 
 /**
  * Type for a move in UNO
  * 
- * export interface TicTacToeMove {
-  gamePiece: 'X' | 'O';
-  row: TicTacToeGridPosition;
-  col: TicTacToeGridPosition;
-}
+ * Maybe no player, but just card I think. then check if it's valid in gameArea.
  */
 export interface UNOMove {
   player: PlayerID;
@@ -274,18 +301,21 @@ export interface UNOMove {
 
 export interface UNOPickUp {
   player: PlayerID;
-
 }
+
 
 /**
  * Type for the state of an UNO game
  * The players are stored in a read only array, up to 4 players.
+ * I think we would need a player's deck or something along those lines, maybe a dict?
+ * We don't need to care about what the players actually are here, we assume they play properly.
  */
 export interface UNOGameState extends WinnableGameState {
-  moves: ReadonlyArray<UNOMove>;
-  deck: ReadonlyArray<Card>;
-  players: ReadonlyArray<UNOPlayer>;
-  topCard: Card;
-  cardsToBePickedUp: number | undefined; // do we need this
-  isPractice: boolean; // is the game being played with an AI?
+  moves: ReadonlyArray<UNOMove> ;
+  deck: Card[];
+  players: ReadonlyArray<UNOPlayer> ;
+  topCard: Card | undefined;
+  currentPlayerIndex: number; // Index of the current player in the players array
+  playDirection: 'clockwise' | 'counterclockwise'; // Direction of play, starts on clockwise
+  drawStack: number; // Number of cards to draw, used for cumulative draw cards - no limits here
 }
