@@ -278,10 +278,9 @@ export interface Card {
   rank: UNOSuit;
 }
 
-export interface UNOPlayer {
-  playerID: PlayerID;
+export interface UNOPlayer extends Player {
   gameID?: GameInstanceID; // do we need this. I think so.
-  cards: ReadonlyArray<Card>;
+  cards: Card[];
 }
 
 /**
@@ -291,13 +290,9 @@ export interface UNOPlayer {
  */
 export interface UNOMove {
   player: PlayerID;
-  name: string,
   card?: Card;
 }
 
-export interface UNOPlayerDeck {
-
-}
 
 /**
  * Type for the state of an UNO game
@@ -306,8 +301,11 @@ export interface UNOPlayerDeck {
  * We don't need to care about what the players actually are here, we assume they play properly.
  */
 export interface UNOGameState extends WinnableGameState {
-  moves: ReadonlyArray<UNOMove>;
-  deck: ReadonlyArray<Card>; // maybe not readonly, also may mutate once deck is ended -> shuffle deck.
-  players: ReadonlyArray<UNOPlayer>;
-  topCard: Card;
+  moves: ReadonlyArray<UNOMove> ;
+  deck: Card[];
+  players: ReadonlyArray<UNOPlayer> ;
+  topCard: Card | undefined;
+  currentPlayerIndex: number; // Index of the current player in the players array
+  playDirection: 'clockwise' | 'counterclockwise'; // Direction of play, starts on clockwise
+  drawStack: number; // Number of cards to draw, used for cumulative draw cards - no limits here
 }
