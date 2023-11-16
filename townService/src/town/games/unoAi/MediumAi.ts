@@ -10,7 +10,7 @@ class GameState {
     }
 
 }
-// test
+
 
 class Node {
     state: GameState;

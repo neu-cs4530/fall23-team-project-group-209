@@ -1,0 +1,4 @@
+The UNO game that we are implementing follows some the official game for most of it's rules except for some exceptions. 
+We'll discuss the caveats and enumerate here. 
+See the original rules: https://www.unorules.com/
+

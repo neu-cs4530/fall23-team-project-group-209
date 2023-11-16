@@ -48,3 +48,16 @@ automatically connect to the town with the friendly name "DEBUG_TOWN" (creating 
 
 In the `frontend` directory, run `npm run dev` (again, you'll need to run `npm install` the very first time). After several moments (or minutes, depending on the speed of your machine), a browser will open with the frontend running locally.
 The frontend will automatically re-compile and reload in your browser if you change any files in the `frontend/src` directory.
+
+### UNO Game Rules
+
+The UNO game that we are implementing follows some the official game for most of it's rules except for some exceptions. 
+We'll discuss the caveats and enumerate here. 
+See the original rules: https://www.unorules.com/
+
+For our purposes we are processing a couple of the rules differently, as this is the superior and more fun way to play.
+All 'Draw' cards (i.e. cards that make the next player in the sequence draw cards) are stackable. The only time a draw
+sequence is broken when the player who is next in the sequence doesn't have a draw card, in which case they must take on the
+ENTIRE draw stack. 
+
+Instead of being able to call UNO, or force someone who didn't call UNO to draw additional cards, a banner will play on the screen when a player has one card left, announcing their UNO. This is to stop the game from slowing down. The AI will always be checking if an UNO is uncalled otherwise and will always catch any failure to call, (unless it's a bad AI) so this will just be a detriment in all aspects. It's better to have a fun banner that will raise the stakes and tension in the game from a design persepctive.
