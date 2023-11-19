@@ -34,8 +34,9 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     });
   }
 
-  // TODO, make updateable.
   MAX_PLAYERS = 4;
+
+  MIN_PLAYERS = 2;
 
   /**
    *
@@ -99,6 +100,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
   }
 
+  // This function does one thing: Updates all the conditional factors after move has been made.
   private _updateCurrentPlayerIndexAndDir(
     move: UNOMove,
     players: ReadonlyArray<UNOPlayer>,
@@ -134,22 +136,33 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
   }
 
-  // TODO: Throw ERROR IF NOT VALID
+  private _isPlayersTurn(playerId: string): void {
+    const currentPlayerId = this.state.players[this.state.currentPlayerIndex].id;
+    if (playerId !== currentPlayerId) {
+      throw new InvalidParametersError('NOT_PLAYER_TURN');
+    }
+  }
+
   private _validMove(move: UNOMove): boolean {
-    // Assuming UNOMove has a property 'playerId' which is the ID of the player making the move
+    this._isPlayersTurn(move.player);
+
+    // THIS is refundant code vvv
     const playerIdMakingMove = move.player;
 
     // Get the current player's ID based on currentPlayerIndex
     const currentPlayerId = this.state.players[this.state.currentPlayerIndex].id;
 
     // Check if the ID of the player making the move is the same as the current player's ID
-    return playerIdMakingMove === currentPlayerId;
+    if (playerIdMakingMove === currentPlayerId) {
+      return true;
+    }
+    throw new InvalidParametersError('NOT_PLAYER_TURN');
   }
 
   // TODO: Throw ERROR IF NOT VALID
   private _validDeck(deck: Card[]): boolean {
     if (deck.length !== 108) {
-      return false;
+      throw new InvalidParametersError('DECK_LENGTH_INCORRECT');
     }
 
     const colorCounts: { [key in CardColor]?: number } = {};
@@ -163,11 +176,11 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     // Check number cards
     for (const color of ['Blue', 'Green', 'Red', 'Yellow'] as CardColor[]) {
       if (colorCounts[color] !== 19) {
-        return false;
+        throw new InvalidParametersError('DECK_INTEGRITY_COMPROMISED');
       }
       for (let i = 1; i <= 9; i++) {
         if (rankCounts.get(i as UNOSuit) !== 8) {
-          return false;
+          throw new InvalidParametersError('DECK_INTEGRITY_COMPROMISED');
         }
       }
     }
@@ -175,13 +188,13 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     // Check action cards
     for (const action of ['Skip', 'Reverse', '+2'] as UNOSuit[]) {
       if (rankCounts.get(action) !== 8) {
-        return false;
+        throw new InvalidParametersError('DECK_INTEGRITY_COMPROMISED');
       }
     }
 
     // Check wild and wild draw four cards
     if (rankCounts.get('Wild') !== 4 || rankCounts.get('+4') !== 4) {
-      return false;
+      throw new InvalidParametersError('DECK_INTEGRITY_COMPROMISED');
     }
 
     return true;
@@ -205,8 +218,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       return true;
     }
 
-    // If none of the conditions are met, the card is not valid
-    return false;
+    throw new InvalidParametersError('INVALID_CARD');
   }
 
   private _makeDeck(): Card[] {
@@ -258,8 +270,9 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
   // and append to deck to put new cards into play.
   public drawCard(playerId: string) {
     this._validGameState();
-    // Check if player's turn:
-    // TODO: DECOUPLE THE METHOD SO IT MAKES SENSE FOR THIS AS WELL
+    // Check if it's the player's turn
+    this._isPlayersTurn(playerId);
+
     // Check if the deck is empty
     if (this.state.deck.length === 0) {
       // Create a new deck and shuffle it
@@ -267,6 +280,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       this._shuffleDeck(newDeck);
       this.state.deck.push(...newDeck);
     }
+
     // Draw the top card from the deck
     const card = this.state.deck.pop();
 
@@ -290,14 +304,22 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     this._validGameState();
     this._validCard(placeCard.move.card, this.state.topCard);
     this._validMove(placeCard.move);
-    // check to see if it can defend
-    // if not deal cards to THIS PLAYER
+
+    // Check if the card is defendable
+    const currentPlayer = this.state.players[this.state.currentPlayerIndex];
+    if (!this._defendableCards(currentPlayer.cards) && this.state.drawStack > 0) {
+      // Add cards to the player's hand based on drawStack
+      for (let i = 0; i < this.state.drawStack; i++) {
+        this.drawCard(currentPlayer.id);
+      }
+      this.state.drawStack = 0;
+    }
+
     this.state.topCard = placeCard.move.card;
     this._updateCurrentPlayerIndexAndDir(placeCard.move, this.state.players);
     this._updateDeckStack(placeCard.move.card);
   }
 
-  // Refactor join, if the game was started with the Start Game button the code does not apply here.
   public _join(player: Player): void {
     // Check if the player is already in the game
     if (this.state.players.some(p => p.id === player.id)) {
@@ -308,8 +330,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       throw new InvalidParametersError(GAME_FULL_MESSAGE);
     }
 
-    // Convert Player to UNOPlayer by adding the additional properties
-    // SHOULD THIS BE IN THIS FUNCTION THIS IS KINDA BUSTED BROOO
+    // Convert Player to UNOPlayer
     const unoPlayer: UNOPlayer = {
       ...player,
       cards: [],
@@ -318,16 +339,22 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     };
 
     this.state.players = [...this.state.players, unoPlayer];
-
-    // what would make the game starts
-
     if (this.state.players.length === this.MAX_PLAYERS) {
-      this.state = {
-        ...this.state,
-        status: 'IN_PROGRESS',
-      };
-      this._initializeGame();
+      this.startGame();
     }
+  }
+
+  public startGame(): void {
+    if (this.state.players.length < this.MIN_PLAYERS) {
+      throw new InvalidParametersError('NOT_ENOUGH_PLAYERS_MESSAGE');
+    }
+
+    this.state = {
+      ...this.state,
+      status: 'IN_PROGRESS',
+    };
+
+    this._initializeGame();
   }
 
   // how to handle the winner? if people leave, the last one standing is the winner
@@ -343,30 +370,31 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
   // Refactor leave, if the game was started with the Start Game button the code does not apply here.
 
   protected _leave(player: Player): void {
-    // if player chooses to leave the game, this is what will happen.
-    if (!this.state.players.find(() => player.id === this.id)) {
+    // Check if the player is in the game
+    if (!this.state.players.some(p => p.id === player.id)) {
       throw new InvalidParametersError(PLAYER_NOT_IN_GAME_MESSAGE);
     }
-    // Handles case where the game has not started yet
-    if (this.state.players.length !== this.MAX_PLAYERS) {
-      // Case where players are still queuing up
-      this.state = {
-        ...this.state,
-        status: 'WAITING_TO_START',
-      };
-      // Remove the player who is leaving
-      this.state.players = this.state.players.filter(() => player.id !== this.id);
-    }
 
-    // TALK TO GROUP ABOUT THIS BIT HERE:
-    // if there are only two players left, and the game is actually in progress
-    else {
-      // if player is player 1 and the lobby is then inherently empty
+    // Remove the player who is leaving
+    this.state.players = this.state.players.filter(p => p.id !== player.id);
+
+    // If the game has not started yet
+    if (this.state.status === 'WAITING_TO_START' || this.state.players.length < this.MAX_PLAYERS) {
+      this.state.status = 'WAITING_TO_START';
+    }
+    // If there are only two players left in an in-progress game and one leaves
+    else if (this.state.players.length === 1 && this.state.status === 'IN_PROGRESS') {
+      // Declare the remaining player as the winner
       this.state = {
         ...this.state,
         status: 'OVER',
-        winner: undefined, // maybe no winner
+        winner: this.state.players[0].id,
       };
     }
+
+    this.state = {
+      ...this.state,
+      status: 'OVER',
+    };
   }
 }
