@@ -339,6 +339,9 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     };
 
     this.state.players = [...this.state.players, unoPlayer];
+    if (this.state.players.length === this.MAX_PLAYERS) {
+      this.startGame();
+    }
   }
 
   public startGame(): void {
