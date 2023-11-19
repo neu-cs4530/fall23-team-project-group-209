@@ -10,8 +10,8 @@ import {
   InteractableCommand,
   InteractableCommandReturnType,
   InteractableType,
-  TicTacToeGameState,
   UNOGameState,
+  UNOMove,
 } from '../../types/CoveyTownSocket';
 import GameArea from './GameArea';
 import UNOGame from './UNOGame';
@@ -29,10 +29,12 @@ export default class TicTacToeGameArea extends GameArea<UNOGame> {
    * @param updatedState the updated state
    */
   private _stateUpdated(updatedState: GameInstance<UNOGameState>) {
+    console.log(`updating state`);
     if (updatedState.state.status === 'OVER') {
       // determine how we want to handle the history situation
     }
     this._emitAreaChanged();
+    console.log('emitted area change');
   }
 
   /**
@@ -74,7 +76,7 @@ export default class TicTacToeGameArea extends GameArea<UNOGame> {
       game.applyMove({
         gameID: command.gameID,
         playerID: player.id,
-        move: command.move, // gonna need to sort this out
+        move: command.move as UNOMove, // gonna need to sort this out
       });
       this._stateUpdated(game.toModel());
       return undefined as InteractableCommandReturnType<CommandType>;
@@ -88,6 +90,7 @@ export default class TicTacToeGameArea extends GameArea<UNOGame> {
       }
       game.join(player);
       this._stateUpdated(game.toModel());
+      console.log('finished and returning');
       return { gameID: game.id } as InteractableCommandReturnType<CommandType>;
     }
     if (command.type === 'LeaveGame') {

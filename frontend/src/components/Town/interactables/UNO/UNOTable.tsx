@@ -1,18 +1,18 @@
 import { Box, HStack, VStack } from '@chakra-ui/react';
 import { Container } from '@material-ui/core';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import UNOAreaController from '../../../../classes/interactable/UNOAreaController';
 import PlayerController from '../../../../classes/PlayerController';
 import useTownController from '../../../../hooks/useTownController';
-import { Card as PlayerCard } from '../../../../types/CoveyTownSocket';
+import { Card as PlayerCard, GameResult, GameStatus } from '../../../../types/CoveyTownSocket';
 
 // null FOR NOW
 export type UNOGameProps = {
-  gameAreaController?: UNOAreaController;
+  gameAreaController: UNOAreaController;
 };
 
 // function to create front card sprite
-function RenderCard({ card, onClick }: { card: PlayerCard; onClick: () => void }): JSX.Element {
+function RenderCard({ card, onClick }: { card: PlayerCard; onClick?: () => void }): JSX.Element {
   //todo change card colors
   return (
     <Box
@@ -112,21 +112,36 @@ function RenderDeck({ onClick }: { onClick: () => void }): JSX.Element {
 export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Element {
   const townAreaController = useTownController();
   //states to hold values
+  const [p1, setP1] = useState(gameAreaController.player1);
+  const [p2, setP2] = useState(gameAreaController.player2);
+  const [p3, setP3] = useState(gameAreaController.player3);
+  const [p4, setP4] = useState(gameAreaController.player4);
+  const [cards, setCards] = useState(gameAreaController.ourDeck || []);
+  const [winner, setWinner] = useState(gameAreaController.winner);
+  const [othersCards, setOthersCards] = useState(gameAreaController.othersCards);
 
   useEffect(() => {
     //functions to update states TODO
     const updateGame = () => {
+      setP1(gameAreaController.player1);
+      setP2(gameAreaController.player2);
+      setP3(gameAreaController.player3);
+      setP4(gameAreaController.player4);
+      setCards(gameAreaController.ourDeck || []);
+      setOthersCards(gameAreaController.othersCards);
       //todo
     };
     const endGame = () => {
       //todo
+      setWinner(gameAreaController.winner);
     };
     //listeners from controller TODO
-    // gameAreaController.addListener('', updateGame);
-    // gameAreaController.addListener('', endGame);
+    gameAreaController.addListener('gameUpdated', updateGame);
+    gameAreaController.addListener('gameEnd', endGame);
     //TODO
     return () => {
-      //gameAreaController.removeListener();
+      gameAreaController.removeListener('gameUpdated', updateGame);
+      gameAreaController.removeListener('gameEnd', endGame);
     };
   }, [gameAreaController, townAreaController]);
 
@@ -161,60 +176,64 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
   //PLACEHOLDERS
   const topCard: PlayerCard = { color: 'Blue', rank: 3 };
   const cardCount = 13;
-  const cards: PlayerCard[] = [
-    { color: 'Green', rank: 9 },
-    { color: 'Red', rank: 6 },
-    { color: 'Blue', rank: +2 },
-  ];
-  let onDeckClick: () => void;
-  const playerCount = 4; // another placeholder
+  const onDeckClick = async () => {
+    await gameAreaController.drawCard();
+  };
   function View(): JSX.Element {
-    switch (playerCount) {
-      // case 2:
-      //   return (
-      //     <VStack>
-      //       <RenderOpponent username={'debug'} cardCount={cardCount} />
-      //       <HStack>
-      //         <RenderCard card={topCard} />
-      //         <RenderDeck onClick={onDeckClick} />
-      //       </HStack>
-      //       <RenderPlayer username={townAreaController.ourPlayer.userName} cards={cards} />
-      //     </VStack>
-      //   );
-      // case 3:
-      //   return (
-      //     <VStack>
-      //       <></>
-      //       <HStack>
-      //         <RenderOpponent username={player3Name} cardCount={cardCount} />
-      //         <RenderCard card={topCard} />
-      //         <RenderDeck onClick={onDeckClick} />
-      //         <RenderOpponent username={player2Name} cardCount={cardCount} />
-      //       </HStack>
-      //       <RenderPlayer username={townAreaController.ourPlayer.userName} cards={cards} />
-      //     </VStack>
-      //   );
-      case 4:
-        return (
-          <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
-            <RenderOpponent username={'debug'} cardCount={cardCount} />
-            <HStack minW='full' spacing='100px' align='stretch'>
-              <RenderOpponent username={'another test a long test'} cardCount={cardCount} />
-              <RenderCard card={topCard} onClick={() => {}} />
-              <RenderDeck onClick={onDeckClick} />
-              <RenderOpponent username={'test'} cardCount={cardCount} />
-            </HStack>
-            <RenderPlayer username={townAreaController.ourPlayer.userName} cards={cards} />
-          </VStack>
-        );
-      default:
-        return <></>;
-    }
+    if (p1 && p2 && p3 && p4) {
+      return (
+        <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
+          <RenderOpponent username={p3.userName} cardCount={cardCount} />
+          <HStack minW='full' spacing='100px' align='stretch'>
+            <RenderOpponent username={p4.userName} cardCount={cardCount} />
+            <RenderCard card={topCard} onClick={() => {}} />
+            <RenderDeck onClick={onDeckClick} />
+            <RenderOpponent username={p2.userName} cardCount={cardCount} />
+          </HStack>
+          <RenderPlayer username={p1.userName} cards={cards} />
+        </VStack>
+      );
+    } else if (p1 && p2 && p3) {
+      return (
+        <VStack>
+          <></>
+          <HStack>
+            <RenderOpponent username={p3.userName} cardCount={cardCount} />
+            <RenderCard card={topCard} />
+            <RenderDeck onClick={onDeckClick} />
+            <RenderOpponent username={p2.userName} cardCount={cardCount} />
+          </HStack>
+          <RenderPlayer username={p1.userName} cards={cards} />
+        </VStack>
+      );
+    } else if (p1 && p2) {
+      return (
+        <VStack>
+          <RenderOpponent username={p2.userName} cardCount={cardCount} />
+          <HStack>
+            <RenderCard card={topCard} />
+            <RenderDeck onClick={onDeckClick} />
+          </HStack>
+          <RenderPlayer username={p1.userName} cards={cards} />
+        </VStack>
+      );
+    } else
+      return (
+        <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
+          <RenderOpponent username={'test'} cardCount={cardCount} />
+          <HStack minW='full' spacing='100px' align='stretch'>
+            <RenderOpponent username={'test'} cardCount={cardCount} />
+            <RenderCard card={topCard} onClick={() => {}} />
+            <RenderDeck onClick={onDeckClick} />
+            <RenderOpponent username={'test'} cardCount={cardCount} />
+          </HStack>
+          <RenderPlayer username={'test'} cards={cards} />
+        </VStack>
+      );
   }
 
   return (
     <VStack>
-      {/* header goes here */}
       <View />
     </VStack>
   );

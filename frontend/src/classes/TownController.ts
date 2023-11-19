@@ -26,13 +26,14 @@ import {
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
 } from '../types/CoveyTownSocket';
-import { isConversationArea, isTicTacToeArea, isViewingArea } from '../types/TypeUtils';
+import { isConversationArea, isTicTacToeArea, isUNOArea, isViewingArea } from '../types/TypeUtils';
 import ConversationAreaController from './interactable/ConversationAreaController';
 import GameAreaController, { GameEventTypes } from './interactable/GameAreaController';
 import InteractableAreaController, {
   BaseInteractableEventMap,
 } from './interactable/InteractableAreaController';
 import TicTacToeAreaController from './interactable/TicTacToeAreaController';
+import UNOAreaController from './interactable/UNOAreaController';
 import ViewingAreaController from './interactable/ViewingAreaController';
 import PlayerController from './PlayerController';
 
@@ -425,10 +426,13 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * events.
      */
     this._socket.on('interactableUpdate', interactable => {
+      console.log('entered interactable update');
       try {
         const controller = this._interactableControllers.find(c => c.id === interactable.id);
         if (controller) {
+          console.log('this is a controller');
           const activeBefore = controller.isActive();
+          console.log('about to call update from');
           controller.updateFrom(interactable, this._playersByIDs(interactable.occupants));
           const activeNow = controller.isActive();
           if (activeBefore !== activeNow) {
@@ -604,6 +608,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           } else if (isTicTacToeArea(eachInteractable)) {
             this._interactableControllers.push(
               new TicTacToeAreaController(eachInteractable.id, eachInteractable, this),
+            );
+          } else if (isUNOArea(eachInteractable)) {
+            this._interactableControllers.push(
+              new UNOAreaController(eachInteractable.id, eachInteractable, this),
             );
           }
         });

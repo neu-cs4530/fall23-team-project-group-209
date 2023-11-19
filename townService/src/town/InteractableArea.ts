@@ -163,7 +163,10 @@ export default abstract class InteractableArea {
    * the model for this InteractableArea in that event.
    */
   protected _emitAreaChanged() {
+    console.log('emitting a change in emitareachanged');
+    console.log(this.toModel().id);
     this._townEmitter.emit('interactableUpdate', this.toModel());
+    console.log('finished within emitareachanged');
   }
 
   /**
