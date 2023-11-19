@@ -391,13 +391,10 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
         winner: this.state.players[0].id,
       };
     }
-    // If the last player leaves
-    else if (this.state.players.length === 0) {
-      this.state = {
-        ...this.state,
-        status: 'OVER',
-        winner: undefined, // No winner since all players left
-      };
-    }
+
+    this.state = {
+      ...this.state,
+      status: 'OVER',
+    };
   }
 }
