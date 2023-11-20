@@ -33,10 +33,13 @@ import UNOTable from './UNOTable';
 function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.Element {
   const gameAreaController = useInteractableAreaController<UNOAreaController>(interactableID);
   const townController = useTownController();
-  // states to hold values
+  // states to hold UNOAreaValues
+  const [isJoining, setIsJoining] = useState(false);
+  // states to hold game values
   const [history, setHistory] = useState<GameResult[]>(gameAreaController.history);
   const [status, setGameStatus] = useState<GameStatus>(gameAreaController.status);
   const [observers, setObservers] = useState<PlayerController[]>(gameAreaController.observers);
+
   const [p1, setP1] = useState(gameAreaController.player1);
   const [p2, setP2] = useState(gameAreaController.player2);
   const [p3, setP3] = useState(gameAreaController.player3);
@@ -72,6 +75,7 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
   const joinGameButton = (
     <Button
       onClick={async () => {
+        setIsJoining(true);
         try {
           await gameAreaController.joinGame();
         } catch (err) {
@@ -81,7 +85,10 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
             status: 'error',
           });
         }
-      }}>
+        setIsJoining(false);
+      }}
+      disabled={isJoining}
+      isLoading={isJoining}>
       Join New Game
     </Button>
   );
@@ -91,9 +98,8 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
   return (
     <Container>
       {joinGameButton}
-      {status}
       <List aria-label='list of players in the game'>
-        {/* add options for AI players */}
+        {/* add button to add AI players */}
         <ListItem>Player 1: {p1?.userName || '(No player yet!)'}</ListItem>
         <ListItem>Player 2: {p2?.userName || '(No player yet!)'}</ListItem>
         <ListItem>Player 3: {p3?.userName || '(No player yet!)'}</ListItem>
@@ -122,7 +128,7 @@ export default function UNOAreaWrapper(): JSX.Element {
 
   if (gameArea && gameArea.getData('type') === 'UNO') {
     return (
-      <Modal size={'xl'} isOpen={true} onClose={closeModal} closeOnOverlayClick={false}>
+      <Modal size='4xl' isOpen={true} onClose={closeModal} closeOnOverlayClick={false}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>{gameArea.name}</ModalHeader>
