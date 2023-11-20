@@ -197,7 +197,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     const playerIndex: number | undefined = this._model.game?.state.currentPlayerIndex;
     if (playerIndex && this.isActive()) {
       const player: UNOPlayer | undefined = this._model.game?.state.players[playerIndex];
-      return this.occupants.find(occupant => occupant.id === player!.id);
+      return this.occupants.find(occupant => occupant.id === player?.id);
     } else {
       return undefined;
     }
@@ -270,14 +270,14 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
    * @returns true if the 2 piles have the same length and each card is the same at every index, or if both are undefined. Else
    * returns false.
    */
-  private _compareCards(pile1: Card[] | undefined, pile2: Card[] | undefined): boolean {
+  private _compareCards(pile1: Card[] | undefined, pile2: Card[] | undefined): boolean | undefined {
     if (!pile1 && !pile2) {
       return true;
     } else if ((!pile1 && pile2) || (pile1 && !pile2)) {
       return false;
     } else {
       return (
-        pile1!.length === pile2!.length && pile1!.every((card, index) => card === pile2![index])
+        pile1?.length === pile2?.length && pile1?.every((card, index) => card === pile2?.[index])
       );
     }
   }
@@ -292,13 +292,13 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
   private _compareOrder(
     order1: PlayerController[] | undefined,
     order2: PlayerController[] | undefined,
-  ): boolean {
+  ): boolean | undefined {
     if (!order1 && !order2) {
       return true;
     } else if ((!order1 && order2) || (order1 && !order2)) {
       return false;
     } else {
-      return order1!.every((playerController, index) => playerController.id === order2![index].id);
+      return order1?.every((playerController, index) => playerController.id === order2?.[index].id);
     }
   }
 
@@ -319,18 +319,18 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     } else if ((!others1 && others2) || (others1 && !others2)) {
       return false;
     } else {
-      const sameSize: boolean = others1!.size === others2!.size;
+      const sameSize: boolean = others1?.size === others2?.size;
       let sameKeyVal = true;
       // iterate through each key in others 1
       // if the key doesnt exist in others2, set flag,
       // if the key does exist in others2, check if same
       // value in both, and set flag if not
-      for (const player in others1!.keys()) {
-        if (!others2!.has(player)) {
+      for (const player in others1?.keys()) {
+        if (!others2?.has(player)) {
           sameKeyVal = false;
           break;
         } else {
-          if (others1!.get(player) !== others2!.get(player)) {
+          if (others1?.get(player) !== others2?.get(player)) {
             sameKeyVal = false;
             break;
           }

@@ -284,7 +284,8 @@ export interface Card {
   rank: UNOSuit;
 }
 
-export interface UNOPlayer extends Player {
+export interface UNOPlayer{
+  id: PlayerID;
   gameID?: GameInstanceID; // do we need this. I think so.
   cards: Card[];
 }
@@ -314,6 +315,7 @@ export interface UNOGameState extends WinnableGameState {
   moves: ReadonlyArray<UNOMove>;
   deck: Card[];
   players: ReadonlyArray<UNOPlayer>;
+  // unoPlayersCards: Card[][];
   topCard: Card | undefined;
   currentPlayerIndex: number; // Index of the current player in the players array
   playDirection: 'clockwise' | 'counterclockwise'; // Direction of play, starts on clockwise
