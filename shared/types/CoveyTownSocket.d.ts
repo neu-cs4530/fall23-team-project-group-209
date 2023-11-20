@@ -313,7 +313,7 @@ export interface UNOPickUp {
 export interface UNOGameState extends WinnableGameState {
   moves: ReadonlyArray<UNOMove>;
   deck: Card[];
-  players: ReadonlyArray<UNOPlayer> ;
+  players: ReadonlyArray<UNOPlayer>;
   topCard: Card | undefined;
   currentPlayerIndex: number; // Index of the current player in the players array
   playDirection: 'clockwise' | 'counterclockwise'; // Direction of play, starts on clockwise

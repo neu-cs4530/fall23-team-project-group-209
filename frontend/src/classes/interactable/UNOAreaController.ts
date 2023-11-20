@@ -225,7 +225,6 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
   }
 
   protected _updateFrom(newModel: GameArea<UNOGameState>): void {
-    console.log('entering controller update from');
     //seems like it makes sense to store old model values, call super
     //check which values updated and call emitters based on it
     const oldTurn = this.whoseTurn;
@@ -234,9 +233,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     const oldOurDeck = this.ourDeck;
     const oldDirection = this.playerDirection;
     const oldOthersCards = this.othersCards;
-    console.log('entering super.updatefrom');
     super._updateFrom(newModel);
-    console.log('finished in super update from');
     const newTurn = this.whoseTurn;
     const newTopCard = this.topCard;
     const newDrawDeck = this.drawDeck;
@@ -262,7 +259,6 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     if (!this._compareOtherDecksMap(oldOthersCards, newOthersCards)) {
       this.emit('otherCardsChanged', newOthersCards);
     }
-    console.log('finsihed ctrl update from');
   }
 
   /**

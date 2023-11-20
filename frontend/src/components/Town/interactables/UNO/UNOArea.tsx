@@ -48,9 +48,7 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
   useEffect(() => {
     //functions to update states
     const updateGame = () => {
-      console.log('player 1 updating');
       setP1(gameAreaController.player1);
-      console.log('player 1 updated');
       setP2(gameAreaController.player2);
       setP3(gameAreaController.player3);
       setP4(gameAreaController.player4);

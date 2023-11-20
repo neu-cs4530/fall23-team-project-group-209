@@ -27,7 +27,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       deck: [],
       players: [],
       topCard: undefined,
-      status: 'IN_PROGRESS',
+      status: 'WAITING_TO_START',
       currentPlayerIndex: 0,
       playDirection: 'clockwise',
       drawStack: 0,
@@ -321,7 +321,6 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
   }
 
   public _join(player: Player): void {
-    console.log('model join');
     // Check if the player is already in the game
     if (this.state.players.some(p => p.id === player.id)) {
       throw new InvalidParametersError(PLAYER_ALREADY_IN_GAME_MESSAGE);

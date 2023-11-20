@@ -18,7 +18,7 @@ import UNOGame from './UNOGame';
 // CHECK LINE 52 TO ASK ABOUT HOW TO HANDLE 2 TYPES OF MOVE??????
 // CHECK LINE 23 FOR HANDLING HISTORY
 // CHECK JOIN GAME PORTION OF HANDLE COMMAND
-export default class TicTacToeGameArea extends GameArea<UNOGame> {
+export default class UNOGameArea extends GameArea<UNOGame> {
   protected getType(): InteractableType {
     return 'UNOArea';
   }
@@ -29,12 +29,10 @@ export default class TicTacToeGameArea extends GameArea<UNOGame> {
    * @param updatedState the updated state
    */
   private _stateUpdated(updatedState: GameInstance<UNOGameState>) {
-    console.log(`updating state`);
     if (updatedState.state.status === 'OVER') {
       // determine how we want to handle the history situation
     }
     this._emitAreaChanged();
-    console.log('emitted area change');
   }
 
   /**
@@ -90,7 +88,6 @@ export default class TicTacToeGameArea extends GameArea<UNOGame> {
       }
       game.join(player);
       this._stateUpdated(game.toModel());
-      console.log('finished and returning');
       return { gameID: game.id } as InteractableCommandReturnType<CommandType>;
     }
     if (command.type === 'LeaveGame') {

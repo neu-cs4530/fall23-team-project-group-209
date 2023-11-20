@@ -168,7 +168,6 @@ export default class Town {
       const interactable = this._interactables.find(
         eachInteractable => eachInteractable.id === command.interactableID,
       );
-      console.log('within town.ts');
       if (interactable) {
         try {
           const payload = interactable.handleCommand(command, newPlayer);
