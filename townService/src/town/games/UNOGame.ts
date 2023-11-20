@@ -249,7 +249,6 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       deck.push({ color: 'Wildcard', rank: '+4' });
     }
 
-    console.log(deck);
     // Shuffle the deck
     this._shuffleDeck(deck);
     return deck;

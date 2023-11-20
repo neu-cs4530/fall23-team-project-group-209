@@ -11,7 +11,6 @@ import {
   InteractableType,
   TicTacToeGameState,
   TicTacToeMove,
-  UNOMove,
 } from '../../types/CoveyTownSocket';
 import GameArea from './GameArea';
 import TicTacToeGame from './TicTacToeGame';
