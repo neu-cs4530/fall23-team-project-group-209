@@ -27,7 +27,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       deck: [],
       players: [],
       topCard: undefined,
-      status: 'IN_PROGRESS',
+      status: 'WAITING_TO_START',
       currentPlayerIndex: 0,
       playDirection: 'clockwise',
       drawStack: 0,
@@ -175,12 +175,12 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
 
     // Check number cards
     for (const color of ['Blue', 'Green', 'Red', 'Yellow'] as CardColor[]) {
-      if (colorCounts[color] !== 19) {
-        throw new InvalidParametersError('DECK_INTEGRITY_COMPROMISED');
+      if (colorCounts[color] !== 25) {
+        throw new InvalidParametersError('DECK_INTEGRITY_COMPROMISEDColor');
       }
       for (let i = 1; i <= 9; i++) {
         if (rankCounts.get(i as UNOSuit) !== 8) {
-          throw new InvalidParametersError('DECK_INTEGRITY_COMPROMISED');
+          throw new InvalidParametersError('DECK_INTEGRITY_COMPROMISEDRank');
         }
       }
     }
@@ -188,13 +188,13 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     // Check action cards
     for (const action of ['Skip', 'Reverse', '+2'] as UNOSuit[]) {
       if (rankCounts.get(action) !== 8) {
-        throw new InvalidParametersError('DECK_INTEGRITY_COMPROMISED');
+        throw new InvalidParametersError('DECK_INTEGRITY_COMPROMISEDAction');
       }
     }
 
     // Check wild and wild draw four cards
     if (rankCounts.get('Wild') !== 4 || rankCounts.get('+4') !== 4) {
-      throw new InvalidParametersError('DECK_INTEGRITY_COMPROMISED');
+      throw new InvalidParametersError('DECK_INTEGRITY_COMPROMISEDWild');
     }
 
     return true;
@@ -248,6 +248,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       deck.push({ color: 'Wildcard', rank: 'Wild' });
       deck.push({ color: 'Wildcard', rank: '+4' });
     }
+
     // Shuffle the deck
     this._shuffleDeck(deck);
     return deck;

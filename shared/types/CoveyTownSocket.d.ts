@@ -312,9 +312,9 @@ export interface UNOPickUp {
  * We don't need to care about what the players actually are here, we assume they play properly.
  */
 export interface UNOGameState extends WinnableGameState {
-  moves: ReadonlyArray<UNOMove> ;
+  moves: ReadonlyArray<UNOMove>;
   deck: Card[];
-  players: ReadonlyArray<UNOPlayer> ;
+  players: ReadonlyArray<UNOPlayer>;
   // unoPlayersCards: Card[][];
   topCard: Card | undefined;
   currentPlayerIndex: number; // Index of the current player in the players array

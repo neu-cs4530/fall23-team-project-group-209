@@ -545,12 +545,12 @@
                 {
                  "height":92.2796984663374,
                  "id":39,
-                 "name":"UNO Test",
+                 "name":"UNO 1",
                  "properties":[
                         {
                          "name":"type",
                          "type":"string",
-                         "value":"TicTacToe"
+                         "value":"UNO"
                         }],
                  "rotation":0,
                  "type":"GameArea",

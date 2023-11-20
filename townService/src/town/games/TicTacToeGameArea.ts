@@ -10,6 +10,7 @@ import {
   InteractableCommandReturnType,
   InteractableType,
   TicTacToeGameState,
+  TicTacToeMove,
 } from '../../types/CoveyTownSocket';
 import GameArea from './GameArea';
 import TicTacToeGame from './TicTacToeGame';
@@ -83,7 +84,7 @@ export default class TicTacToeGameArea extends GameArea<TicTacToeGame> {
       game.applyMove({
         gameID: command.gameID,
         playerID: player.id,
-        move: command.move,
+        move: command.move as TicTacToeMove,
       });
       this._stateUpdated(game.toModel());
       return undefined as InteractableCommandReturnType<CommandType>;

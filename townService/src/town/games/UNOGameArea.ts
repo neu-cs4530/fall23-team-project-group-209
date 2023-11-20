@@ -18,7 +18,7 @@ import UNOGame from './UNOGame';
 // CHECK LINE 52 TO ASK ABOUT HOW TO HANDLE 2 TYPES OF MOVE??????
 // CHECK LINE 23 FOR HANDLING HISTORY
 // CHECK JOIN GAME PORTION OF HANDLE COMMAND
-export default class TicTacToeGameArea extends GameArea<UNOGame> {
+export default class UNOGameArea extends GameArea<UNOGame> {
   protected getType(): InteractableType {
     return 'UNOArea';
   }
