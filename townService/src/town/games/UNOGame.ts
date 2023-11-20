@@ -332,10 +332,8 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
 
     // Convert Player to UNOPlayer
     const unoPlayer: UNOPlayer = {
-      ...player,
       cards: [],
       id: player.id,
-      userName: player.userName,
     };
 
     this.state.players = [...this.state.players, unoPlayer];
