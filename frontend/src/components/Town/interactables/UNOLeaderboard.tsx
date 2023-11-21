@@ -1,4 +1,3 @@
-import { Table, Tbody, Td, Thead, Tr } from '@chakra-ui/react';
 import React from 'react';
 
 /**
@@ -13,6 +12,6 @@ import React from 'react';
  * we may incorporate the ability to search for a name in the leaderboard
  */
 export default function UNOLeaderboard(): JSX.Element {
-    //not sure what the parameter is yet to read from database?
-    return <></>;
+  //not sure what the parameter is yet to read from database?
+  return <></>;
 }

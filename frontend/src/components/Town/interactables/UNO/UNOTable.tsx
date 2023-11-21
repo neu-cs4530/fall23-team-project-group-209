@@ -6,14 +6,20 @@ import PlayerController from '../../../../classes/PlayerController';
 import useTownController from '../../../../hooks/useTownController';
 import { Card as PlayerCard } from '../../../../types/CoveyTownSocket';
 
-// null FOR NOW
 export type UNOGameProps = {
   gameAreaController: UNOAreaController;
 };
 
 // function to create front card sprite
 function RenderCard({ card, onClick }: { card: PlayerCard; onClick?: () => void }): JSX.Element {
-  //todo change card colors
+  const cardText =
+    card.rank === 'Reverse'
+      ? 'R'
+      : card.rank === 'Skip'
+      ? 'S'
+      : card.rank === 'Wild'
+      ? 'W'
+      : card.rank;
   return (
     <Box
       textAlign='center'
@@ -26,7 +32,7 @@ function RenderCard({ card, onClick }: { card: PlayerCard; onClick?: () => void 
       bg={card.color}
       textColor={card.color === 'Yellow' || card.color === 'Wildcard' ? 'black' : 'white'}
       onClick={onClick}>
-      {card.rank}
+      {cardText}
     </Box>
   );
 }
@@ -89,9 +95,9 @@ function RenderOpponent({ username, cardCount }: { username: string; cardCount: 
 // TODO:
 // renders the arrows that denote whose turn it is
 // and what direction the game is moving in
-function RenderArrows(order: PlayerController, reversed: boolean) {
-  return;
-}
+// function RenderArrows(order: PlayerController, reversed: boolean) {
+//   return;
+// }
 
 // renders the deck that cards will be pulled from
 // onClick to draw from deck
@@ -129,7 +135,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
   const [topCard, setTopCard] = useState(
     gameAreaController.topCard || ({ color: 'Blue', rank: 'Wild' } as PlayerCard),
   );
-  const [winner, setWinner] = useState(gameAreaController.winner);
+  //const [winner, setWinner] = useState(gameAreaController.winner);
   const [othersCards, setOthersCards] = useState(gameAreaController.othersCards);
   const [ourTurn, setOurTurn] = useState(gameAreaController.isOurTurn);
 
@@ -148,7 +154,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
     };
     const endGame = () => {
       //todo
-      setWinner(gameAreaController.winner);
+      //setWinner(gameAreaController.winner);
     };
     //listeners from controller TODO
     gameAreaController.addListener('gameUpdated', updateGame);
@@ -187,36 +193,6 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
     if (p4) playerList.push(p4);
   }
 
-  // find our player, then move other players around for orientation
-  // use mod
-
-  // const player1Name = gameAreaController.players.at(0)?.userName ?? '';
-  // const player2Name = gameAreaController.players.at(1)?.userName ?? '';
-  // const player3Name = gameAreaController.players.at(2)?.userName ?? '';
-  // const player4Name = gameAreaController.players.at(3)?.userName ?? '';
-
-  // todo figure out how to handle the order where current player is static at the bottom
-
-  // 4players
-  // header
-  // 4th player
-  // 2nd, topcard and deck, 3rd player
-  // our player
-
-  // 3players
-  // header
-  //
-  // 2nd, topcard and deck, 3rd player
-  // our player
-
-  // 2players
-  // header
-  // 2nd player
-  // topcard and deck
-  // our player
-
-  //PLACEHOLDERS
-  const cardCount = 13;
   const onDeckClick = async () => {
     console.log('onDeckClicked');
     await gameAreaController.drawCard();
@@ -245,7 +221,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
               cardCount={othersCards?.get(p2.id) ?? 0}
             />
           </HStack>
-          {ourTurn ? '!!' : ''}
+          <span>{ourTurn ? '!!' : ''}</span>
           <RenderPlayer
             username={playerList.at(0)?.userName ?? ''}
             cards={cards}
@@ -278,7 +254,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
       );
     } else if (p1 && p2) {
       return (
-        <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
+        <VStack minH='full' paddingY='30px' spacing='100px' align='flex-start'>
           <RenderOpponent
             username={playerList.at(1)?.userName ?? ''}
             cardCount={othersCards?.get(p2.id) ?? 0}
@@ -297,12 +273,12 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
     } else
       return (
         <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
-          <RenderOpponent username={'test'} cardCount={cardCount} />
+          <RenderOpponent username={'test'} cardCount={0} />
           <HStack minW='full' spacing='100px' align='stretch'>
-            <RenderOpponent username={'test'} cardCount={cardCount} />
+            <RenderOpponent username={'test'} cardCount={0} />
             <RenderCard card={topCard} onClick={() => {}} />
             <RenderDeck onClick={onDeckClick} />
-            <RenderOpponent username={'test'} cardCount={cardCount} />
+            <RenderOpponent username={'test'} cardCount={0} />
           </HStack>
           <RenderPlayer username={'test'} cards={cards} onClick={() => {}} />
         </VStack>
