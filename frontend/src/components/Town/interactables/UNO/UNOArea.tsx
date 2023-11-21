@@ -5,7 +5,8 @@ import UNOAreaController from '../../../../classes/interactable/UNOAreaControlle
 import {
   Button,
   Container,
-  HStack,
+  Divider,
+  GridItem,
   List,
   ListItem,
   Modal,
@@ -14,6 +15,7 @@ import {
   ModalHeader,
   ModalOverlay,
   Select,
+  SimpleGrid,
   useToast,
   VStack,
 } from '@chakra-ui/react';
@@ -28,14 +30,15 @@ function AIModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }):
       <ModalContent alignItems='center' paddingY='30px'>
         <ModalCloseButton />
         <VStack spacing='3'>
-          {'What level AI opponent would you like to play against?'}
+          <span>{'What level AI opponent would you like to play against?'}</span>
           <Select>
             <option value='easy'>Easy</option>
             <option value='med'>Medium</option>
             <option value='easy'>Hard</option>
           </Select>
+          {/** TODO: Add controller call once I get clarification on functions to add AI opponent. */}
           <Button size='md' width='70px'>
-            Submit
+            Add
           </Button>
         </VStack>
       </ModalContent>
@@ -155,7 +158,6 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
       <Button
         onClick={async () => {
           try {
-            // todo controller impl of adding AI
             setIsModalOpen(true);
           } catch (err) {
             toast({
@@ -171,6 +173,38 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
       <></>
     );
 
+  const listPlayers =
+    status !== 'IN_PROGRESS' ? (
+      <SimpleGrid columns={3} gap={6}>
+        <GridItem colSpan={2} alignContent='center'>
+          <List aria-label='list of players in the game'>
+            <VStack alignItems='stretch' gap={-1}>
+              <ListItem>Player 1: {p1?.userName || '(No player yet!)'}</ListItem>
+              <ListItem>Player 2: {p2?.userName || '(No player yet!)'}</ListItem>
+              <ListItem>Player 3: {p3?.userName || '(No player yet!)'}</ListItem>
+              <ListItem>Player 4: {p4?.userName || '(No player yet!)'}</ListItem>
+            </VStack>
+          </List>
+        </GridItem>
+        <GridItem>
+          <VStack>
+            {addAIButton}
+            {joinGameButton}
+            {startGameButton}
+          </VStack>
+        </GridItem>
+      </SimpleGrid>
+    ) : (
+      <List aria-label='list of players in the game'>
+        <VStack alignItems='stretch' borderY={-1}>
+          <ListItem>Player 1: {p1?.userName || '(No player yet!)'}</ListItem>
+          <ListItem>Player 2: {p2?.userName || '(No player yet!)'}</ListItem>
+          {p3 && <ListItem>Player 3: {p3?.userName || '(No player yet!)'}</ListItem>}
+          {p4 && <ListItem>Player 4: {p4?.userName || '(No player yet!)'}</ListItem>}
+        </VStack>
+      </List>
+    );
+
   const statusText = () => {
     const winnerText = winner ? `The winner is ${winner}!` : 'There is no winner.';
     switch (status) {
@@ -178,7 +212,7 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
         return <span>{'Game is waiting to start.'}</span>;
       case 'IN_PROGRESS':
         return (
-          <span>{`Game is in progress. It is ${whoseTurn}'s turn. The game direction is ${direction}.`}</span>
+          <span>{`Game is in progress. It is ${whoseTurn?.userName}'s turn. The game direction is ${direction}.`}</span>
         );
       case 'OVER':
         return <span>{`Game is over! ${winnerText}`}</span>;
@@ -190,29 +224,12 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
   // if waiting to start, return the join game screen.
   // otherwise, render the uno table.
   return (
-    <Container>
+    <Container minW='full' paddingBottom='5'>
       <AIModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}></AIModal>
       <VStack minW='full' align='center'>
-        <List aria-label='list of players in the game'>
-          <HStack align='center'>
-            <ListItem>Player 1: {p1?.userName || '(No player yet!)'}</ListItem>
-            <ListItem>Player 2: {p2?.userName || '(No player yet!)'}</ListItem>
-          </HStack>
-          <HStack align='stretch'>
-            {status !== 'WAITING_TO_START' && p3 && (
-              <ListItem>Player 3: {p3?.userName || '(No player yet!)'}</ListItem>
-            )}
-            {status !== 'WAITING_TO_START' && p4 && (
-              <ListItem>Player 4: {p4?.userName || '(No player yet!)'}</ListItem>
-            )}
-          </HStack>
-        </List>
-        <HStack>
-          {joinGameButton}
-          {startGameButton}
-          {addAIButton}
-        </HStack>
-        {statusText}
+        {listPlayers}
+        <Divider />
+        {statusText()}
       </VStack>
       {status !== 'WAITING_TO_START' && <UNOTable gameAreaController={gameAreaController} />}
     </Container>
