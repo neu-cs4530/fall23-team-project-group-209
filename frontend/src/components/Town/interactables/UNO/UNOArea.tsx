@@ -25,7 +25,7 @@ function AIModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }):
   return isOpen ? (
     <Modal size='md' isOpen onClose={onClose}>
       <ModalOverlay />
-      <ModalContent alignItems='center'>
+      <ModalContent alignItems='center' paddingY='30px'>
         <ModalCloseButton />
         <VStack spacing='3'>
           {'What level AI opponent would you like to play against?'}

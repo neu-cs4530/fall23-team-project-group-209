@@ -133,7 +133,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
   const [p4, setP4] = useState(gameAreaController.player4);
   const [cards, setCards] = useState(gameAreaController.ourDeck || []);
   const [topCard, setTopCard] = useState(
-    gameAreaController.topCard || ({ color: 'Blue', rank: 'Wild' } as PlayerCard),
+    gameAreaController.topCard || ({ color: 'Wildcard', rank: 'Wild' } as PlayerCard),
   );
   //const [winner, setWinner] = useState(gameAreaController.winner);
   const [othersCards, setOthersCards] = useState(gameAreaController.othersCards);
