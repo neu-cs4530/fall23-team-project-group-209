@@ -62,7 +62,6 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
 
     // Assign the validated and shuffled deck to the state
     this.state.deck = tdeck;
-    this._shuffleDeck(this.state.deck);
     // give 7 cards to each player. If cards run out, then make a new deck and add it to game somehow.
 
     this.state.players.forEach(player => {
@@ -70,7 +69,6 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
         // Check if the deck has enough cards
         if (this.state.deck.length === 0) {
           const newDeck = this._makeDeck();
-          this._shuffleDeck(newDeck); // another shuffle cause why not - this might create testing issues (?)
           this.state.deck.push(...newDeck);
         }
         // Give the top card from the deck to the player
@@ -83,7 +81,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
 
     // Set the initial top card from the deck
     let topCard = this.state.deck.pop();
-    while (topCard && (topCard.rank === '+4' || topCard.rank === 'Wild')) {
+    while (topCard && (topCard.rank === '+4' || topCard.rank === 'Wild' || topCard.rank === '+2')) {
       // Ensure the starting card is not a Wild or Wild Draw Four
       this.state.deck.unshift(topCard); // Place it back at the bottom
       this._shuffleDeck(this.state.deck); // Shuffle again
@@ -159,7 +157,6 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     throw new InvalidParametersError('NOT_PLAYER_TURN');
   }
 
-  // TODO: Throw ERROR IF NOT VALID
   private _validDeck(deck: Card[]): boolean {
     if (deck.length !== 108) {
       throw new InvalidParametersError('DECK_LENGTH_INCORRECT');
@@ -204,12 +201,25 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
   // TODO: Throw ERROR IF NOT VALID
   private _validCard(card: Card, topCard: Card): boolean {
     // Check if the card is a Wild card (can be played on anything)
-    if (card.rank === 'Wild' || card.rank === '+4') {
+
+    if (topCard.rank === '+4' && (card.rank === '+4' || card.rank === '+2')) {
+      return true;
+    }
+
+    if ((card.rank === 'Wild' || card.rank === '+4') && this.state.drawStack === 0) {
       return true;
     }
 
     // Check if the colors match (if the top card is not a Wild card)
-    if (topCard.color !== 'Wildcard' && card.color === topCard.color) {
+    if (
+      topCard.color !== 'Wildcard' &&
+      card.color === topCard.color &&
+      this.state.drawStack === 0
+    ) {
+      return true;
+    }
+
+    if (topCard.rank === '+2' && (card.rank === '+2' || card.rank === '+4')) {
       return true;
     }
 
@@ -267,6 +277,8 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     return cards.some(card => card.rank === '+2' || card.rank === '+4');
   }
 
+  private _removePlacedCardFromHand(cardToRemove: Card[]): void {}
+
   // player draws a card from deck and puts it into their own card array. If there are no cards create new deck of cards
   // and append to deck to put new cards into play.
   public drawCard(playerId: string) {
@@ -302,6 +314,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     if (this.state.topCard === undefined) {
       throw new InvalidParametersError('TOP CARD UNDEFINED');
     }
+
     this._validGameState();
     this._validCard(placeCard.move.card, this.state.topCard);
     this._validMove(placeCard.move);
@@ -317,6 +330,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
 
     this.state.topCard = placeCard.move.card;
+    this._removePlacedCardFromHand(placeCard.move.card);
     this._updateCurrentPlayerIndexAndDir(placeCard.move, this.state.players);
     this._updateDeckStack(placeCard.move.card);
   }
