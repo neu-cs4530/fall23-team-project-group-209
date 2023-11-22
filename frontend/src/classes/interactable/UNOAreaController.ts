@@ -370,13 +370,11 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
       throw new Error(NO_GAME_IN_PROGRESS_ERROR);
     }
     await this._townController.sendInteractableCommand(this.id, {
-      type: 'GameMove',
+      type: 'DrawCard',
       gameID: instanceID,
-      move: {
-        player: this._townController.ourPlayer.id,
+      id: this._townController.ourPlayer.id,
       },
-    });
-  }
+    )}
 
   /**
    * this function sends a request to the server for this game to start
@@ -391,5 +389,22 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
       type: 'StartGame',
       gameID: instanceID,
     });
+  }
+
+  /**
+   * this function sends a request to the server for the game to have an AI player join
+   * if the game is already in progress, throws GAME_ALREADY_IN_PROGRESS
+   * @param difficulty 
+   */
+  public async joinAI(difficulty: string) {
+    const instanceID = this._instanceID;
+    if (!instanceID || this._model.game?.state.status !== 'WAITING_TO_START') {
+      throw new Error(GAME_ALREADY_IN_PROGRESS);
+    }
+    await this._townController.sendInteractableCommand(this.id, {
+      type: 'JoinAI',
+      gameID: instanceID,
+      difficulty: difficulty
+  });
   }
 }
