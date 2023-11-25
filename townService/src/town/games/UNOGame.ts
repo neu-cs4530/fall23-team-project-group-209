@@ -277,7 +277,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     return cards.some(card => card.rank === '+2' || card.rank === '+4');
   }
 
-  private _removePlacedCardFromHand(cardToRemove: Card[]): void {}
+  private _removePlacedCardFromHand(cardToRemove: Card): void {}
 
   // player draws a card from deck and puts it into their own card array. If there are no cards create new deck of cards
   // and append to deck to put new cards into play.
