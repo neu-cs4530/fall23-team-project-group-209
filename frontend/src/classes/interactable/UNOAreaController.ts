@@ -18,6 +18,7 @@ export type UNOEvents = GameEventTypes & {
  * this class is responsible for handling the state of a UNO game, and for sending commands to the server
  */
 export default class UNOAreaController extends GameAreaController<UNOGameState, UNOEvents> {
+  //
   /**
    * Returns the top card of the game state. This top card is what is displayed to all players,
    * and is what our player attempts to place the card on, therefore updating the top card. If the
@@ -27,6 +28,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     return this._model.game?.state.topCard;
   }
 
+  //
   /**
    * returns the deck of cards that a player draws from when they are in need of a new card.
    * This deck does not exist when the game hasnt started yet, and is updated whenver a player
@@ -36,6 +38,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     return this._model.game?.state.deck;
   }
 
+  //
   /**
    * returns the deck of our player, that is the player that this controller is for.
    * If the game is not in progress, returns undefined,
@@ -74,6 +77,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     }
   }
 
+  //
   /**
    * This getter returns the direction that the flow of turns is moving at this time, or undefined
    * if the game is not active.
@@ -86,6 +90,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     }
   }
 
+  //
   /**
    * returns the playerController for the player denoted as player1 in the UNO game,
    * or undefined if there is no player1
@@ -99,6 +104,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     return undefined;
   }
 
+  //
   /**
    * returns the playerController for the player denoted as player2 in the UNO game,
    * or undefined if there is no player2
@@ -112,6 +118,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     return undefined;
   }
 
+  //
   /**
    * returns the playerController for the player denoted as player3 in the UNO game,
    * or undefined if there is no player3
@@ -125,6 +132,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     return undefined;
   }
 
+  //
   /**
    * returns the playerController for the player denoted as player4 in the UNO game,
    * or undefined if there is no player4
@@ -138,6 +146,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     return undefined;
   }
 
+  //
   /**
    * returns a map of all other players IDs and the number of cards they have, if the game is in progres
    * If the game is not yet in progress, undefined is returned.
@@ -163,6 +172,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     }
   }
 
+  //
   /**
    * returns the playerController for the winner of the game of UNO, if there is one
    */
@@ -175,6 +185,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     return undefined;
   }
 
+  //
   /**
    * returns the status of the game. If the game is null because it hasnt been initialized
    * then it returns waiting to start, else it will return the status of the game.
@@ -189,6 +200,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     }
   }
 
+  //
   /**
    * Returns the playerController for the player whos turn it is. If the game has not started,
    * then it returns undefined.
@@ -203,6 +215,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     }
   }
 
+  //
   /**
    * returns true if it is our players turn
    */
@@ -210,6 +223,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     return this.whoseTurn?.id === this._townController.ourPlayer.id;
   }
 
+  //
   /**
    * returns true if our player is a player in this game of UNO.
    */
@@ -217,6 +231,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     return this._model.game?.players.includes(this._townController.ourPlayer.id) || false;
   }
 
+  //
   /**
    * @returns true if the status of this game is in progress.
    */
@@ -370,13 +385,11 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
       throw new Error(NO_GAME_IN_PROGRESS_ERROR);
     }
     await this._townController.sendInteractableCommand(this.id, {
-      type: 'GameMove',
+      type: 'DrawCard',
       gameID: instanceID,
-      move: {
-        player: this._townController.ourPlayer.id,
+      id: this._townController.ourPlayer.id,
       },
-    });
-  }
+    )}
 
   /**
    * this function sends a request to the server for this game to start
@@ -391,5 +404,22 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
       type: 'StartGame',
       gameID: instanceID,
     });
+  }
+
+  /**
+   * this function sends a request to the server for the game to have an AI player join
+   * if the game is already in progress, throws GAME_ALREADY_IN_PROGRESS
+   * @param difficulty 
+   */
+  public async joinAI(difficulty: string) {
+    const instanceID = this._instanceID;
+    if (!instanceID || this._model.game?.state.status !== 'WAITING_TO_START') {
+      throw new Error(GAME_ALREADY_IN_PROGRESS);
+    }
+    await this._townController.sendInteractableCommand(this.id, {
+      type: 'JoinAI',
+      gameID: instanceID,
+      difficulty: difficulty
+  });
   }
 }
