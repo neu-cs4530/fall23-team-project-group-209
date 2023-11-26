@@ -1,16 +1,12 @@
-import {
-  Card,
-  GameResult,
-  GameStatus,
-  InteractableID,
-} from '../../../../../../shared/types/CoveyTownSocket';
+import { GameStatus, InteractableID } from '../../../../../../shared/types/CoveyTownSocket';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useInteractableAreaController } from '../../../../classes/TownController';
 import UNOAreaController from '../../../../classes/interactable/UNOAreaController';
-import PlayerController from '../../../../classes/PlayerController';
 import {
   Button,
   Container,
+  Divider,
+  GridItem,
   List,
   ListItem,
   Modal,
@@ -18,7 +14,10 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
+  Select,
+  SimpleGrid,
   useToast,
+  VStack,
 } from '@chakra-ui/react';
 import useTownController from '../../../../hooks/useTownController';
 import GameAreaInteractable from '../GameArea';
@@ -35,10 +34,16 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
   const townController = useTownController();
   // states to hold UNOAreaValues
   const [isJoining, setIsJoining] = useState(false);
-  // states to hold game values
-  const [history, setHistory] = useState<GameResult[]>(gameAreaController.history);
+  const [isStarting, setIsStarting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  // states to hold game values from controller
+  //const [history, setHistory] = useState<GameResult[]>(gameAreaController.history);
   const [status, setGameStatus] = useState<GameStatus>(gameAreaController.status);
-  const [observers, setObservers] = useState<PlayerController[]>(gameAreaController.observers);
+  //const [observers, setObservers] = useState<PlayerController[]>(gameAreaController.observers);
+  const [inGame, setInGame] = useState(gameAreaController.isPlayer);
+  const [whoseTurn, setWhoseTurn] = useState(gameAreaController.whoseTurn);
+  const [direction, setDirection] = useState(gameAreaController.playerDirection);
+  const [winner, setWinner] = useState(gameAreaController.winner);
 
   const [p1, setP1] = useState(gameAreaController.player1);
   const [p2, setP2] = useState(gameAreaController.player2);
@@ -55,12 +60,16 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
       setP2(gameAreaController.player2);
       setP3(gameAreaController.player3);
       setP4(gameAreaController.player4);
-      setHistory(gameAreaController.history);
+      //setHistory(gameAreaController.history);
       setGameStatus(gameAreaController.status || 'WAITING_TO_START');
-      setObservers(gameAreaController.observers);
+      //setObservers(gameAreaController.observers);
+      setInGame(gameAreaController.isPlayer);
+      setWhoseTurn(gameAreaController.whoseTurn);
+      setWinner(gameAreaController.winner);
+      setDirection(gameAreaController.playerDirection);
     };
     const endGame = () => {
-      setHistory(gameAreaController.history);
+      //setHistory(gameAreaController.history);
     };
     //listeners from controller
     gameAreaController.addListener('gameUpdated', updateGame);
@@ -72,7 +81,9 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
     };
   }, [gameAreaController, townController]);
 
-  const joinGameButton = (
+  const joinGameButton = inGame ? (
+    <></>
+  ) : (
     <Button
       onClick={async () => {
         setIsJoining(true);
@@ -93,19 +104,145 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
     </Button>
   );
 
+  const startGameButton =
+    p2 && inGame && status === 'WAITING_TO_START' ? (
+      <Button
+        onClick={async () => {
+          setIsStarting(true);
+          try {
+            await gameAreaController.startGame();
+          } catch (err) {
+            toast({
+              title: 'Error starting game',
+              description: (err as Error).toString(),
+              status: 'error',
+            });
+          }
+          setIsStarting(false);
+        }}
+        disabled={isStarting}
+        isLoading={isStarting}>
+        Start Game
+      </Button>
+    ) : (
+      <></>
+    );
+
+  const addAIButton =
+    inGame && status === 'WAITING_TO_START' && !p4 ? (
+      <Button
+        onClick={async () => {
+          try {
+            setIsModalOpen(true);
+          } catch (err) {
+            toast({
+              title: 'Error adding AI',
+              description: (err as Error).toString(),
+              status: 'error',
+            });
+          }
+        }}>
+        Add AI Opponent
+      </Button>
+    ) : (
+      <></>
+    );
+
+  function AIModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }): JSX.Element {
+    // const [mode, setMode] = useState('easy');
+    // const onClick = async () => {
+    //   await gameAreaController.joinAI(mode);
+    // };
+    return isOpen ? (
+      <Modal size='md' isOpen onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent alignItems='center' paddingY='30px'>
+          <ModalCloseButton />
+          <VStack spacing='3'>
+            <span>{'What level AI opponent would you like to play against?'}</span>
+            {/** 
+             * TODO: add this to select component once controller is all set for AI
+              value={mode}
+              onChange={e => {
+                setMode(e.target.value);
+              }}
+             */}
+            <Select>
+              <option value='easy'>Easy</option>
+              <option value='med'>Medium</option>
+              <option value='hard'>Hard</option>
+            </Select>
+            {/** TODO: Add onClick above once controller is all set */}
+            <Button size='md' width='70px'>
+              Add
+            </Button>
+          </VStack>
+        </ModalContent>
+      </Modal>
+    ) : (
+      <></>
+    );
+  }
+
+  const listPlayers =
+    status !== 'IN_PROGRESS' ? (
+      <SimpleGrid columns={3} gap={6}>
+        <GridItem colSpan={2} alignContent='center'>
+          <List aria-label='list of players in the game'>
+            <VStack alignItems='stretch'>
+              <ListItem>Player 1: {p1?.userName || '(No player yet!)'}</ListItem>
+              <ListItem>Player 2: {p2?.userName || '(No player yet!)'}</ListItem>
+              <ListItem>Player 3: {p3?.userName || '(No player yet!)'}</ListItem>
+              <ListItem>Player 4: {p4?.userName || '(No player yet!)'}</ListItem>
+            </VStack>
+          </List>
+        </GridItem>
+        <GridItem>
+          <VStack>
+            {addAIButton}
+            {joinGameButton}
+            {startGameButton}
+          </VStack>
+        </GridItem>
+      </SimpleGrid>
+    ) : (
+      <List aria-label='list of players in the game'>
+        <VStack alignItems='stretch' borderY={-1}>
+          <ListItem>Player 1: {p1?.userName || '(No player yet!)'}</ListItem>
+          <ListItem>Player 2: {p2?.userName || '(No player yet!)'}</ListItem>
+          {p3 && <ListItem>Player 3: {p3.userName}</ListItem>}
+          {p4 && <ListItem>Player 4: {p4.userName}</ListItem>}
+        </VStack>
+      </List>
+    );
+
+  const statusText = () => {
+    const winnerText = winner ? `The winner is ${winner}!` : 'There is no winner.';
+    switch (status) {
+      case 'WAITING_TO_START':
+        return <span>{'Game is waiting to start.'}</span>;
+      case 'IN_PROGRESS':
+        return (
+          <span>{`Game is in progress. It is ${whoseTurn?.userName}'s turn. The game direction is ${direction}.`}</span>
+        );
+      case 'OVER':
+        return <span>{`Game is over! ${winnerText}`}</span>;
+      default:
+        <></>;
+    }
+  };
+
   // if waiting to start, return the join game screen.
   // otherwise, render the uno table.
   return (
-    <Container>
-      {joinGameButton}
-      <List aria-label='list of players in the game'>
-        {/* add button to add AI players */}
-        <ListItem>Player 1: {p1?.userName || '(No player yet!)'}</ListItem>
-        <ListItem>Player 2: {p2?.userName || '(No player yet!)'}</ListItem>
-        <ListItem>Player 3: {p3?.userName || '(No player yet!)'}</ListItem>
-        <ListItem>Player 4: {p4?.userName || '(No player yet!)'}</ListItem>
-      </List>
-      <UNOTable gameAreaController={gameAreaController} />
+    <Container minW='full' paddingBottom='5'>
+      <AIModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}></AIModal>
+      <VStack minW='full' align='center'>
+        {listPlayers}
+        <Divider />
+        {statusText()}
+      </VStack>
+      {status !== 'WAITING_TO_START' && <UNOTable gameAreaController={gameAreaController} />}
     </Container>
   );
 }
