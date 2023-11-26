@@ -20,7 +20,6 @@ import {
 import UNOGameArea from './UNOGameArea';
 import * as UNOGameModule from './UNOGame';
 import Game from './Game';
-import Town from '../Town';
 
 // WHAT SHOULD THE TESTS BE NUMBERED AS??
 // TEST FOR ENDING GAME
