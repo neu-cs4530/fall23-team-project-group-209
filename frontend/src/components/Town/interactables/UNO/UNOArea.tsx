@@ -23,31 +23,6 @@ import useTownController from '../../../../hooks/useTownController';
 import GameAreaInteractable from '../GameArea';
 import UNOTable from './UNOTable';
 
-function AIModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }): JSX.Element {
-  return isOpen ? (
-    <Modal size='md' isOpen onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent alignItems='center' paddingY='30px'>
-        <ModalCloseButton />
-        <VStack spacing='3'>
-          <span>{'What level AI opponent would you like to play against?'}</span>
-          <Select>
-            <option value='easy'>Easy</option>
-            <option value='med'>Medium</option>
-            <option value='easy'>Hard</option>
-          </Select>
-          {/** TODO: Add controller call once I get clarification on functions to add AI opponent. */}
-          <Button size='md' width='70px'>
-            Add
-          </Button>
-        </VStack>
-      </ModalContent>
-    </Modal>
-  ) : (
-    <></>
-  );
-}
-
 /**
  * Overall UNO frontend area that allows for the player to join a game,
  * start a game, optionally add AI opponent(s), and finish the game.
@@ -173,12 +148,48 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
       <></>
     );
 
+  function AIModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }): JSX.Element {
+    // const [mode, setMode] = useState('easy');
+    // const onClick = async () => {
+    //   await gameAreaController.joinAI(mode);
+    // };
+    return isOpen ? (
+      <Modal size='md' isOpen onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent alignItems='center' paddingY='30px'>
+          <ModalCloseButton />
+          <VStack spacing='3'>
+            <span>{'What level AI opponent would you like to play against?'}</span>
+            {/** 
+             * TODO: add this to select component once controller is all set for AI
+              value={mode}
+              onChange={e => {
+                setMode(e.target.value);
+              }}
+             */}
+            <Select>
+              <option value='easy'>Easy</option>
+              <option value='med'>Medium</option>
+              <option value='hard'>Hard</option>
+            </Select>
+            {/** TODO: Add onClick above once controller is all set */}
+            <Button size='md' width='70px'>
+              Add
+            </Button>
+          </VStack>
+        </ModalContent>
+      </Modal>
+    ) : (
+      <></>
+    );
+  }
+
   const listPlayers =
     status !== 'IN_PROGRESS' ? (
       <SimpleGrid columns={3} gap={6}>
         <GridItem colSpan={2} alignContent='center'>
           <List aria-label='list of players in the game'>
-            <VStack alignItems='stretch' gap={-1}>
+            <VStack alignItems='stretch'>
               <ListItem>Player 1: {p1?.userName || '(No player yet!)'}</ListItem>
               <ListItem>Player 2: {p2?.userName || '(No player yet!)'}</ListItem>
               <ListItem>Player 3: {p3?.userName || '(No player yet!)'}</ListItem>
@@ -199,8 +210,8 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
         <VStack alignItems='stretch' borderY={-1}>
           <ListItem>Player 1: {p1?.userName || '(No player yet!)'}</ListItem>
           <ListItem>Player 2: {p2?.userName || '(No player yet!)'}</ListItem>
-          {p3 && <ListItem>Player 3: {p3?.userName || '(No player yet!)'}</ListItem>}
-          {p4 && <ListItem>Player 4: {p4?.userName || '(No player yet!)'}</ListItem>}
+          {p3 && <ListItem>Player 3: {p3.userName}</ListItem>}
+          {p4 && <ListItem>Player 4: {p4.userName}</ListItem>}
         </VStack>
       </List>
     );
