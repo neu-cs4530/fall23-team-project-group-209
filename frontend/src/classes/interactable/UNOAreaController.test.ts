@@ -302,7 +302,6 @@ describe('[] UNOAreaController', () => {
       it('should return undefined if there is no player3', () => {
         const ourUNOPlayer = { cards: [], id: ourPlayer.id };
         const otherUNOPlayer = { cards: [], id: otherPlayers[0].id };
-        const anotherUNOPlayer = { cards: [], id: otherPlayers[1].id };
         const controller = UNOAreaControllerWithProp({
           status: 'IN_PROGRESS',
           players: [ourUNOPlayer, otherUNOPlayer],
@@ -411,9 +410,9 @@ describe('[] UNOAreaController', () => {
         expect(controller.playerDirection).toBe(undefined);
       });
       it('should return undefined if game inst initialized', () => {
-        const controller = UNOAreaControllerWithProp({
-          undefinedGame: true,
-        });
+        // const controller = UNOAreaControllerWithProp({
+        //   undefinedGame: true,
+        // });
       });
     });
     describe('topCard', () => {

@@ -388,8 +388,8 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
       type: 'DrawCard',
       gameID: instanceID,
       id: this._townController.ourPlayer.id,
-      },
-    )}
+    });
+  }
 
   /**
    * this function sends a request to the server for this game to start
@@ -409,7 +409,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
   /**
    * this function sends a request to the server for the game to have an AI player join
    * if the game is already in progress, throws GAME_ALREADY_IN_PROGRESS
-   * @param difficulty 
+   * @param difficulty
    */
   public async joinAI(difficulty: string) {
     const instanceID = this._instanceID;
@@ -419,7 +419,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     await this._townController.sendInteractableCommand(this.id, {
       type: 'JoinAI',
       gameID: instanceID,
-      difficulty: difficulty
-  });
+      difficulty: difficulty,
+    });
   }
 }

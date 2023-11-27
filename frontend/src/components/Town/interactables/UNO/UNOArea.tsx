@@ -81,28 +81,29 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
     };
   }, [gameAreaController, townController]);
 
-  const joinGameButton = inGame ? (
-    <></>
-  ) : (
-    <Button
-      onClick={async () => {
-        setIsJoining(true);
-        try {
-          await gameAreaController.joinGame();
-        } catch (err) {
-          toast({
-            title: 'Error joining game',
-            description: (err as Error).toString(),
-            status: 'error',
-          });
-        }
-        setIsJoining(false);
-      }}
-      disabled={isJoining}
-      isLoading={isJoining}>
-      Join New Game
-    </Button>
-  );
+  const joinGameButton =
+    inGame || status === 'IN_PROGRESS' ? (
+      <></>
+    ) : (
+      <Button
+        onClick={async () => {
+          setIsJoining(true);
+          try {
+            await gameAreaController.joinGame();
+          } catch (err) {
+            toast({
+              title: 'Error joining game',
+              description: (err as Error).toString(),
+              status: 'error',
+            });
+          }
+          setIsJoining(false);
+        }}
+        disabled={isJoining}
+        isLoading={isJoining}>
+        Join New Game
+      </Button>
+    );
 
   const startGameButton =
     p2 && inGame && status === 'WAITING_TO_START' ? (
@@ -149,31 +150,48 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
     );
 
   function AIModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }): JSX.Element {
-    // const [mode, setMode] = useState('easy');
-    // const onClick = async () => {
-    //   await gameAreaController.joinAI(mode);
-    // };
+    const [mode, setMode] = useState('easy');
+    const onClick = async () => {
+      setIsJoining(true);
+      try {
+        await gameAreaController.joinAI(mode);
+        onClose();
+        toast({
+          title: 'Success',
+          description: `Added a(n) ${mode === 'med' ? 'medium' : mode} AI to the game.`,
+          status: 'success',
+        });
+      } catch (err) {
+        toast({
+          title: 'Error adding AI to game',
+          description: (err as Error).toString(),
+          status: 'error',
+        });
+      }
+      setIsJoining(false);
+    };
     return isOpen ? (
-      <Modal size='md' isOpen onClose={onClose}>
+      <Modal size='md' isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent alignItems='center' paddingY='30px'>
           <ModalCloseButton />
           <VStack spacing='3'>
             <span>{'What level AI opponent would you like to play against?'}</span>
-            {/** 
-             * TODO: add this to select component once controller is all set for AI
+            <Select
               value={mode}
               onChange={e => {
                 setMode(e.target.value);
-              }}
-             */}
-            <Select>
+              }}>
               <option value='easy'>Easy</option>
               <option value='med'>Medium</option>
               <option value='hard'>Hard</option>
             </Select>
-            {/** TODO: Add onClick above once controller is all set */}
-            <Button size='md' width='70px'>
+            <Button
+              size='md'
+              width='70px'
+              onClick={onClick}
+              disabled={isJoining}
+              isLoading={isJoining}>
               Add
             </Button>
           </VStack>
@@ -235,9 +253,9 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
   // if waiting to start, return the join game screen.
   // otherwise, render the uno table.
   return (
-    <Container minW='full' paddingBottom='5'>
+    <Container minW='full' paddingX={0} bgColor='tomato'>
       <AIModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}></AIModal>
-      <VStack minW='full' align='center'>
+      <VStack minW='max' bgColor='white' align='center' paddingBottom='5'>
         {listPlayers}
         <Divider />
         {statusText()}

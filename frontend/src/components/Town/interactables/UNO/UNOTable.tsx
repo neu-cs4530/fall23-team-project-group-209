@@ -1,5 +1,4 @@
-import { Box, HStack, VStack } from '@chakra-ui/react';
-import { Container } from '@material-ui/core';
+import { Box, Container, HStack, Image, useToast, VStack } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import UNOAreaController from '../../../../classes/interactable/UNOAreaController';
 import PlayerController from '../../../../classes/PlayerController';
@@ -29,7 +28,7 @@ function RenderCard({ card, onClick }: { card: PlayerCard; onClick?: () => void 
       maxH={59}
       outline='solid'
       outlineColor='black'
-      bg={card.color}
+      bg={card.color === 'Wildcard' ? 'white' : card.color}
       textColor={card.color === 'Yellow' || card.color === 'Wildcard' ? 'black' : 'white'}
       onClick={onClick}>
       {cardText}
@@ -95,8 +94,11 @@ function RenderOpponent({
   return (
     <Container>
       <VStack>
-        <RenderOpponentCards count={cardCount} />
-        <span>{`${username} ${theirTurn ? '(their turn)' : ''}`}</span>
+        <HStack>
+          <Image src='/user.png' boxSize='80px' alt={username} />
+          <RenderOpponentCards count={cardCount} />
+        </HStack>
+        <span>{`${username}${theirTurn ? ' (their turn)' : ''}`}</span>
       </VStack>
     </Container>
   );
@@ -112,19 +114,7 @@ function RenderOpponent({
 // renders the deck that cards will be pulled from
 // onClick to draw from deck
 function RenderDeck({ onClick }: { onClick: () => void }): JSX.Element {
-  return (
-    <Box
-      textAlign='center'
-      borderRadius='3px'
-      maxH={59}
-      paddingX='19px'
-      paddingY='18px'
-      outline='solid'
-      bg='lightgray'
-      onClick={onClick}>
-      {''}
-    </Box>
-  );
+  return <Image boxSize='80px' src='/unocard.png' alt='deck' onClick={onClick} />;
 }
 
 /**
@@ -134,6 +124,7 @@ function RenderDeck({ onClick }: { onClick: () => void }): JSX.Element {
  */
 export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Element {
   const townAreaController = useTownController();
+  const toast = useToast();
   //states to hold values
   const playerList: PlayerController[] = [];
   const ourPlayer = townAreaController.ourPlayer.id;
@@ -145,7 +136,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
   const [topCard, setTopCard] = useState(
     gameAreaController.topCard || ({ color: 'Wildcard', rank: 'Wild' } as PlayerCard),
   );
-  //const [winner, setWinner] = useState(gameAreaController.winner);
+  const [, setWinner] = useState(gameAreaController.winner);
   const [othersCards, setOthersCards] = useState(gameAreaController.othersCards);
   const [ourTurn, setOurTurn] = useState(gameAreaController.isOurTurn);
   const [whoseTurn, setWhoseTurn] = useState(gameAreaController.whoseTurn);
@@ -162,11 +153,9 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
       setTopCard(gameAreaController.topCard || ({ color: 'Blue', rank: 'Wild' } as PlayerCard));
       setOurTurn(gameAreaController.isOurTurn);
       setWhoseTurn(gameAreaController.whoseTurn);
-      //todo
     };
     const endGame = () => {
-      //todo
-      //setWinner(gameAreaController.winner);
+      setWinner(gameAreaController.winner);
     };
     //listeners from controller TODO
     gameAreaController.addListener('gameUpdated', updateGame);
@@ -206,23 +195,37 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
   }
 
   const onDeckClick = async () => {
-    console.log('onDeckClicked');
-    await gameAreaController.drawCard();
+    try {
+      await gameAreaController.drawCard();
+    } catch (err) {
+      toast({
+        title: 'Error drawing from deck',
+        description: (err as Error).toString(),
+        status: 'error',
+      });
+    }
   };
   const onCardClick = async (idx: number) => {
-    console.log('onCardClicked');
-    await gameAreaController.makeMove(cards[idx]);
+    try {
+      await gameAreaController.makeMove(cards[idx]);
+    } catch (err) {
+      toast({
+        title: 'Error placing card',
+        description: (err as Error).toString(),
+        status: 'error',
+      });
+    }
   };
   function View(): JSX.Element {
     if (p1 && p2 && p3 && p4) {
       return (
-        <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
+        <VStack minH='full' paddingY='30px' spacing='100px' margin='auto' paddingRight='50px'>
           <RenderOpponent
             username={playerList.at(2)?.userName ?? ''}
             cardCount={othersCards?.get(p3.id) ?? 0}
             theirTurn={playerList.at(2)?.id === whoseTurn?.id || false}
           />
-          <HStack minW='full' spacing='100px' align='stretch'>
+          <HStack minW='full' spacing='96px' margin='auto'>
             <RenderOpponent
               username={playerList.at(3)?.userName ?? ''}
               cardCount={othersCards?.get(p4.id) ?? 0}
@@ -306,8 +309,8 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
   }
 
   return (
-    <VStack>
+    <Container>
       <View />
-    </VStack>
+    </Container>
   );
 }
