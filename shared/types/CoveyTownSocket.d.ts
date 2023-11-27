@@ -176,7 +176,8 @@ interface InteractableCommandBase {
   type: string;
 }
 
-export type InteractableCommand =  ViewingAreaUpdateCommand | JoinGameCommand | GameMoveCommand<TicTacToeMove> | LeaveGameCommand | StartGameCommand | GameMoveCommand<UNOMove> | DrawCommand | JoinAICommand;
+export type InteractableCommand =  ViewingAreaUpdateCommand | JoinGameCommand | GameMoveCommand<TicTacToeMove> 
+| LeaveGameCommand | StartGameCommand | GameMoveCommand<UNOMove> | DrawCommand | JoinAICommand | ChangeColorCommand;
 export interface ViewingAreaUpdateCommand  {
   type: 'ViewingAreaUpdate';
   update: ViewingArea;
@@ -210,6 +211,12 @@ export interface JoinAICommand {
   gameID: GameInstanceID;
   difficulty: string;
 }
+
+export interface ChangeColorCommand {
+  type: 'ColorChange';
+  gameID: GameInstanceID;
+  color: string;
+}
 export type InteractableCommandReturnType<CommandType extends InteractableCommand> = 
   CommandType extends JoinGameCommand ? { gameID: string} :
   CommandType extends JoinAICommand ? { gameID: string} :
@@ -219,6 +226,7 @@ export type InteractableCommandReturnType<CommandType extends InteractableComman
   CommandType extends DrawCommand ? undefined :
   CommandType extends LeaveGameCommand ? undefined :
   CommandType extends StartGameCommand ? { gameID: string}:
+  CommandType extends ChangeColorCommand ? undefined : 
   never;
 
 export type InteractableCommandResponse<MessageType> = {

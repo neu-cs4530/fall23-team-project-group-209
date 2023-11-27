@@ -1,3 +1,4 @@
+import { deepEqual } from 'assert';
 import { Card, GameArea, GameStatus, UNOGameState, UNOPlayer } from '../../types/CoveyTownSocket';
 import PlayerController from '../PlayerController';
 import GameAreaController, { GameEventTypes } from './GameAreaController';
@@ -207,7 +208,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
    */
   get whoseTurn(): PlayerController | undefined {
     const playerIndex: number | undefined = this._model.game?.state.currentPlayerIndex;
-    if (playerIndex && this.isActive()) {
+    if ((playerIndex !== undefined) && this.isActive()) {
       const player: UNOPlayer | undefined = this._model.game?.state.players[playerIndex];
       return this.occupants.find(occupant => occupant.id === player?.id);
     } else {
@@ -236,7 +237,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
    * @returns true if the status of this game is in progress.
    */
   public isActive(): boolean {
-    return this.status === 'IN_PROGRESS';
+    return this._model.game?.state.status === 'IN_PROGRESS';
   }
 
   protected _updateFrom(newModel: GameArea<UNOGameState>): void {
@@ -256,16 +257,16 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     const newDirection = this.playerDirection;
     const newOthersCards = this.othersCards;
     //check to see what states in the new and old model have changed, emit the correct events
-    if (oldTurn !== newTurn) {
+    if (oldTurn?.id !== newTurn?.id) {
       this.emit('turnChanged', this.isOurTurn);
     }
-    if (oldTopCard !== newTopCard) {
+    if (this._compareCard(oldTopCard, newTopCard)) { 
       this.emit('topCardChanged', newTopCard);
     }
-    if (!this._compareCards(oldDrawDeck, newDrawDeck)) {
+    if (!this._compareDecks(oldDrawDeck, newDrawDeck)) {
       this.emit('drawDeckChanged', newDrawDeck);
     }
-    if (!this._compareCards(oldOurDeck, newOurDeck)) {
+    if (!this._compareDecks(oldOurDeck, newOurDeck)) {
       this.emit('ourDeckChanged', newOurDeck);
     }
     if (!(oldDirection === newDirection)) {
@@ -285,37 +286,18 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
    * @returns true if the 2 piles have the same length and each card is the same at every index, or if both are undefined. Else
    * returns false.
    */
-  private _compareCards(pile1: Card[] | undefined, pile2: Card[] | undefined): boolean | undefined {
+  private _compareDecks(pile1: Card[] | undefined, pile2: Card[] | undefined): boolean | undefined {
     if (!pile1 && !pile2) {
       return true;
     } else if ((!pile1 && pile2) || (pile1 && !pile2)) {
       return false;
     } else {
       return (
-        pile1?.length === pile2?.length && pile1?.every((card, index) => card === pile2?.[index])
+        pile1?.length === pile2?.length && pile1?.every((card, index) => this._compareCard(card, pile2?.[index]))
       );
     }
   }
 
-  /**
-   * this private helper helps to determine if old player order is the same as the new player order. The orders
-   * are the same if the lists holds the players in the same order.
-   * @param order1 the old order that we are comparing to the new order
-   * @param order2 the new order that we are comparing to the old order
-   * @returns true if the 2 orders are either undefined, or contain each player in the same order
-   */
-  private _compareOrder(
-    order1: PlayerController[] | undefined,
-    order2: PlayerController[] | undefined,
-  ): boolean | undefined {
-    if (!order1 && !order2) {
-      return true;
-    } else if ((!order1 && order2) || (order1 && !order2)) {
-      return false;
-    } else {
-      return order1?.every((playerController, index) => playerController.id === order2?.[index].id);
-    }
-  }
 
   /**
    * this private helper helps to determine if the old map for others player and their amount of cards
@@ -421,5 +403,32 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
       gameID: instanceID,
       difficulty: difficulty
   });
+  }
+
+  /**
+   * Send s a command to the towntroller for changing the color of the top card
+   * if the game isnt in progres, throws error
+   * @param color the color to change the top card to
+   */
+  public async changeColor(color: string) {
+    const instanceID = this._instanceID;
+    if (!instanceID || this._model.game?.state.status !== 'IN_PROGRESS') {
+      throw new Error(NO_GAME_IN_PROGRESS_ERROR);
+    }
+    await this._townController.sendInteractableCommand(this.id, {
+      type: 'ColorChange',
+      gameID: instanceID,
+      color: color,
+    });
+  }
+
+  /**
+   * compare 2 cards
+   * @param card first card
+   * @param card2 second card
+   * @returns true if the cards have the same rank and color
+   */
+  private _compareCard(card: Card | undefined, card2: Card | undefined): boolean {
+    return (card?.color === card2?.color) && (card?.rank === card2?.rank);
   }
 }

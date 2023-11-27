@@ -14,7 +14,7 @@ import GameAreaController from './GameAreaController';
 import UNOAreaController, { GAME_ALREADY_IN_PROGRESS } from './UNOAreaController';
 import { mock } from 'jest-mock-extended';
 import assert from 'assert';
-import { NO_GAME_IN_PROGRESS_ERROR } from './TicTacToeAreaController';
+import { NO_GAME_IN_PROGRESS_ERROR, PLAYER_NOT_IN_GAME_ERROR } from './TicTacToeAreaController';
 //DETERMINE TESTING LABELS
 
 describe('[] UNOAreaController', () => {
@@ -156,7 +156,7 @@ describe('[] UNOAreaController', () => {
         const controller = UNOAreaControllerWithProp({
           status: 'IN_PROGRESS',
         });
-        expect(controller.status).toBe('In_PROGRESS');
+        expect(controller.status).toBe('IN_PROGRESS');
       });
       it('shouild return WAITING_TO_START if undefined game', () => {
         const controller = UNOAreaControllerWithProp({
@@ -172,7 +172,7 @@ describe('[] UNOAreaController', () => {
           status: 'IN_PROGRESS',
           players: [ourUNOPlayer],
         });
-        expect(controller.whoseTurn).toBe(ourUNOPlayer);
+        expect(controller.whoseTurn).toBe(ourPlayer);
       });
       it('should return undefined if the game is not in progress', () => {
         const ourUNOPlayer: UNOPlayer = { cards: [], id: ourPlayer.id };
@@ -454,11 +454,11 @@ describe('[] UNOAreaController', () => {
           { color: 'Red', rank: 2 },
         ]);
       });
-      it('should return undefined if the game isnt in progress', () => {
+      it('should return empty deck if the game isnt in progress', () => {
         const controller = UNOAreaControllerWithProp({
           status: 'WAITING_TO_START',
         });
-        expect(controller.drawDeck).toBe(undefined);
+        expect(controller.drawDeck).toEqual([]);
       });
       it('should return undefined if the game isnt defined', () => {
         const controller = UNOAreaControllerWithProp({
@@ -644,7 +644,37 @@ describe('[] UNOAreaController', () => {
         });
       });
     });
-    describe('JoinAI', () => {
+    describe('changeColor', () => {
+        it('should throw an error if the game is not in progress', async () => {
+            const controller = UNOAreaControllerWithProp({
+                status: 'WAITING_TO_START',
+            });
+            await expect(async () => controller.changeColor('Red')).rejects.toEqual(
+                new Error(NO_GAME_IN_PROGRESS_ERROR),
+            );
+        });
+        it('should call towncontroller.sendInteractableCommand', async () => {
+            const ourUNOPlayer: UNOPlayer = { cards: [{ color: 'Blue', rank: 1 }], id: ourPlayer.id };
+            const otherUNOPlayer = { cards: [], id: otherPlayers[0].id };
+            const controller = UNOAreaControllerWithProp({
+              status: 'IN_PROGRESS',
+              players: [ourUNOPlayer, otherUNOPlayer],
+        });
+        const instanceID = nanoid();
+        mockTownController.sendInteractableCommand.mockImplementationOnce(async () => {
+          return { gameID: instanceID };
+        });
+        await controller.joinGame();
+        mockTownController.sendInteractableCommand.mockReset();
+        await controller.changeColor('Red');
+        expect(mockTownController.sendInteractableCommand).toHaveBeenCalledWith(controller.id, {
+          type: 'ColorChange',
+          gameID: instanceID,
+          color: 'Red'
+        });
+      });
+    });
+    describe('joinAI', () => {
       it('should throw an erorr if the game is in progress', async () => {
         const controller = UNOAreaControllerWithProp({
           status: 'IN_PROGRESS',
