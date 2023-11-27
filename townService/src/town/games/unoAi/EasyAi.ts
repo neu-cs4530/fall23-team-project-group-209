@@ -1,5 +1,5 @@
 import UNOGame from '../UNOGame';
-import { Card, UNOPlayer, GameMove, UNOMove } from '../../../types/CoveyTownSocket';
+import { Card, GameMove, UNOMove } from '../../../types/CoveyTownSocket';
 
 class EasyAIStrategy {
   private _game: UNOGame;
