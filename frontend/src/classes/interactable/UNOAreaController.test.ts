@@ -18,6 +18,7 @@ import { NO_GAME_IN_PROGRESS_ERROR, PLAYER_NOT_IN_GAME_ERROR } from './TicTacToe
 //DETERMINE TESTING LABELS
 
 describe('[] UNOAreaController', () => {
+  // below is the set up for controller testing
   const ourPlayer = new PlayerController(nanoid(), 'player', {
     x: 0,
     y: 0,
@@ -511,7 +512,7 @@ describe('[] UNOAreaController', () => {
           status: 'IN_PROGRESS',
           players: [otherUNOPlayer, anotherUNOPlayer],
         });
-        expect(controller.ourDeck).toThrowError();
+        expect(() => controller.ourDeck).toThrow();
       });
     });
     describe('othersCards', () => {
@@ -773,7 +774,7 @@ describe('[] UNOAreaController', () => {
         const emitSpy = jest.spyOn(controller, 'emit');
         controller.updateFrom(model, otherPlayers.concat(ourPlayer));
         const deckChangedCall = emitSpy.mock.calls.find(call => call[0] === 'drawDeckChanged');
-        expect(deckChangedCall).not.tobeDefined();
+        expect(deckChangedCall).not.toBeDefined();
       });
       it('should emit a turnChanged event with false if it our turn', () => {
         const model = controller.toInteractableAreaModel();
@@ -959,10 +960,13 @@ describe('[] UNOAreaController', () => {
       });
     });
     it('should call super._updateFrom', () => {
+      const ourUNOPlayer: UNOPlayer = {cards: [], id: ourPlayer.id }
       //eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore - we are testing spying on a private method
       const spy = jest.spyOn(GameAreaController.prototype, '_updateFrom');
-      const controller = UNOAreaControllerWithProp({});
+      const controller = UNOAreaControllerWithProp({
+        players: [ourUNOPlayer],
+      });
       const model = controller.toInteractableAreaModel();
       controller.updateFrom(model, otherPlayers.concat(ourPlayer));
       expect(spy).toHaveBeenCalled();

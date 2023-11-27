@@ -50,6 +50,8 @@ class TestingUNOGame extends Game<UNOGameState, UNOMove> {
 
   public startGame(): void {}
 
+  public colorChange(): void {}
+
   public endGame(winner?: string) {
     this.state = {
       ...this.state,

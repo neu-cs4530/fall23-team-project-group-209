@@ -6,6 +6,7 @@ import { PLAYER_NOT_IN_GAME_ERROR } from './TicTacToeAreaController';
 import { NO_GAME_IN_PROGRESS_ERROR } from './TicTacToeAreaController';
 
 export const GAME_ALREADY_IN_PROGRESS = 'The game is already in progress';
+// UNO events to be communicated from controller
 export type UNOEvents = GameEventTypes & {
   turnChanged: (isOurTurn: boolean) => void;
   drawDeckChanged: (deck: Card[] | undefined) => void;
@@ -165,6 +166,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
             playersAndCards.set(player.id, player.cards.length);
           }
         });
+        return playersAndCards;
       } else {
         return undefined;
       }
@@ -240,6 +242,11 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     return this._model.game?.state.status === 'IN_PROGRESS';
   }
 
+/**
+ * Checks to see how the model has changed, and then emits events
+ * to the front end so it can update the visual display. 
+ * @param newModel the model that the old model is compared to 
+ */
   protected _updateFrom(newModel: GameArea<UNOGameState>): void {
     //seems like it makes sense to store old model values, call super
     //check which values updated and call emitters based on it
@@ -260,7 +267,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     if (oldTurn?.id !== newTurn?.id) {
       this.emit('turnChanged', this.isOurTurn);
     }
-    if (this._compareCard(oldTopCard, newTopCard)) { 
+    if (!this._compareCard(oldTopCard, newTopCard)) { 
       this.emit('topCardChanged', newTopCard);
     }
     if (!this._compareDecks(oldDrawDeck, newDrawDeck)) {
@@ -315,14 +322,21 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
       return true;
     } else if ((!others1 && others2) || (others1 && !others2)) {
       return false;
-    } else {
+    } else if (others1 && others2) {
       const sameSize: boolean = others1?.size === others2?.size;
       let sameKeyVal = true;
+      let otherNum;
       // iterate through each key in others 1
       // if the key doesnt exist in others2, set flag,
       // if the key does exist in others2, check if same
       // value in both, and set flag if not
-      for (const player in others1?.keys()) {
+      for (let [player, num] of others1) {
+        otherNum = others2.get(player);
+        //in case undefiend, make sure key exists
+        if (otherNum !== num || (otherNum === undefined && others2.has(player))) {
+          sameKeyVal = false;
+        }
+        /** 
         if (!others2?.has(player)) {
           sameKeyVal = false;
           break;
@@ -332,8 +346,11 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
             break;
           }
         }
+        */
       }
       return sameSize && sameKeyVal;
+    } else {
+      return false;
     }
   }
 
