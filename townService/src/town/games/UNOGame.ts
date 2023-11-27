@@ -15,14 +15,21 @@ import {
   UNOSuit,
 } from '../../types/CoveyTownSocket';
 import Game from './Game';
+// import EasyAi from './unoAi/EasyAi';
 
 /**
  * @see README.md (and scroll to the section added at the bottom talking about rule changes.)
  * Everything is outlined further here as needed.
+ * Represents a game of UNO, extending the generic Game class functionality
+ * with specific logic for UNO
  */
 export default class UNOGame extends Game<UNOGameState, UNOMove> {
+  /**
+   * Initializes a new UNO game with the default settings
+   */
   public constructor() {
     super({
+      // Initializes the game state setup
       moves: [],
       deck: [],
       players: [],
@@ -34,11 +41,16 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     });
   }
 
+  // Maximum number of players allowed in the game.
   MAX_PLAYERS = 4;
 
+  // Minimum number of players required to start the game
   MIN_PLAYERS = 2;
 
-  // Function to reset the game state.
+  /**
+   * Resets the game state to its initial configuration.
+   * This is typically used at the start of a new game.
+   */
   private _resetGameState(): void {
     this.state = {
       moves: [],
@@ -53,14 +65,8 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
   }
 
   /**
-   *
-   * I think more logic needs to be updated, how will the game know if the player has no cards?
-   * Applying a move should remove player cards
-   * how will the game know when to force the player to draw cards?
-   * How will the player draw cards?
-   * how will cards be applied?
-   * Applying a move should implement the move's specific properties(done)
-   *
+   * Initializes the game, shuffling and distributing cards among players.
+   * Also sets the initial top card of the game.
    */
   private _initializeGame() {
     const tdeck = this._makeDeck();
@@ -103,6 +109,12 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
     this.state.topCard = topCard;
   }
+  /**
+   * Updates the draw stack based on the played card.
+   * This is used for action cards like '+2' and '+4'.
+   *
+   * @param {Card} card - The card that was played.
+   */
 
   private _updateDeckStack(card: Card) {
     if (card.rank === '+2') {
@@ -112,7 +124,14 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
   }
 
-  // This function does one thing: Updates all the conditional factors after move has been made.
+  /**
+   * Updates the current player's index and the direction of play.
+   * This accounts for action cards like 'Reverse' and 'Skip'.
+   *
+   * @param {UNOMove} move - The move that was played.
+   * @param {ReadonlyArray<UNOPlayer>} players - The list of players in the game.
+   * @return {number} The index of the next player.
+   */
   private _updateCurrentPlayerIndexAndDir(
     move: UNOMove,
     players: ReadonlyArray<UNOPlayer>,
@@ -139,6 +158,12 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
     return this.state.currentPlayerIndex;
   }
+  /**
+   * Checks whether the current game state is valid for certain actions.
+   * Throws an error if the game is not in progress.
+   *
+   * @return {boolean} True if the game state is valid.
+   */
 
   private _validGameState(): boolean {
     if (this.state.status !== 'IN_PROGRESS') {
@@ -148,17 +173,29 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
   }
 
+  /**
+   * Determines if it's the specified player's turn.
+   *
+   * @param {string} playerId - The ID of the player.
+   * @return {boolean} True if it's the player's turn.
+   */
+
   private _isPlayersTurn(playerId: string): boolean {
     const currentPlayerId = this.state.players[this.state.currentPlayerIndex].id;
     return playerId === currentPlayerId;
   }
 
+  /**
+   * Validates whether a move made by a player is valid.
+   *
+   * @param {UNOMove} move - The move to validate.
+   * @return {boolean} True if the move is valid.
+   */
+
   private _validMove(move: UNOMove): boolean {
     if (!this._isPlayersTurn(move.player)) {
       throw new InvalidParametersError('NOT_PLAYER_TURN');
     }
-
-    // THIS is refundant code vvv
     const playerIdMakingMove = move.player;
 
     // Get the current player's ID based on currentPlayerIndex
@@ -170,6 +207,16 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
     throw new InvalidParametersError('NOT_PLAYER_TURN');
   }
+
+  /**
+   * Validates the integrity of the UNO deck.
+   * Ensures that the deck has the correct number of cards of each color and rank,
+   * including action and wild cards.
+   *
+   * @param {Card[]} deck - The deck to validate.
+   * @return {boolean} True if the deck is valid.
+   * @throws {InvalidParametersError} If the deck does not meet the required criteria.
+   */
 
   private _validDeck(deck: Card[]): boolean {
     if (deck.length !== 108) {
@@ -211,8 +258,19 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     return true;
   }
 
-  // check if a Card is valid to play on topCard
-  // TODO: Throw ERROR IF NOT VALID
+  /**
+   * Validates if a card can be legally played on the current top card.
+   *
+   * The method checks for color and rank matches and handles special conditions,
+   * such as when there's an active draw stack (e.g., a series of +2's or +4's) and
+   * the play of Wild and Wild Draw Four cards.
+   *
+   * @param {Card} card - The card that the player intends to play.
+   * @param {Card} topCard - The current top card on the play stack.
+   * @return {boolean} True if the card can be played, false otherwise.
+   * @throws {InvalidParametersError} If the card cannot be played based on the game rules.
+   */
+
   private _validCard(card: Card, topCard: Card): boolean {
     // If there's a draw stack, check if the card continues the stack
     if (this.state.drawStack > 0) {
@@ -247,6 +305,13 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     throw new InvalidParametersError('INVALID_CARD');
   }
 
+  /**
+   * Creates a new deck of UNO cards. This deck includes numbered cards, action cards,
+   * and wild cards in appropriate proportions and colors.
+   *
+   * @return {Card[]} The newly created and shuffled deck of UNO cards.
+   */
+
   private _makeDeck(): Card[] {
     const deck: Card[] = [];
     const colors: CardColor[] = ['Red', 'Green', 'Yellow', 'Blue'];
@@ -280,6 +345,12 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     return deck;
   }
 
+  /**
+   * Shuffles the provided deck of cards using a modern version of the Fisher-Yates shuffle algorithm.
+   *
+   * @param {Card[]} deck - The deck of cards to shuffle.
+   */
+
   private _shuffleDeck(deck: Card[]): void {
     // Implement a shuffle algorithm to randomize the deck
     for (let i = deck.length - 1; i > 0; i--) {
@@ -288,10 +359,24 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
   }
 
-  // when it's the player's turn, it should check if they have any playable cards in their deck against +2's or +4s
+  /**
+   * Determines whether the specified cards in a player's hand can defend against +2 or +4 cards.
+   *
+   * @param {Card[]} cards - The array of cards in the player's hand.
+   * @return {boolean} True if the player can defend against +2 or +4 cards, false otherwise.
+   */
+
   private _defendableCards(cards: Card[]): boolean {
     return cards.some(card => card.rank === '+2' || card.rank === '+4');
   }
+
+  /**
+   * Removes a specified card from a player's hand. Used when a player places a card on the stack.
+   *
+   * @param {string} playerId - The ID of the player.
+   * @param {Card} cardToRemove - The card to remove from the player's hand.
+   * @throws Error if the player or card is not found.
+   */
 
   private _removePlacedCardFromHand(playerId: string, cardToRemove: Card): void {
     const player = this.state.players.find(p => p.id === playerId);
@@ -312,8 +397,12 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     player.cards.splice(cardIndex, 1);
   }
 
-  // player draws a card from deck and puts it into their own card array. If there are no cards create new deck of cards
-  // and append to deck to put new cards into play.
+  /**
+   * Handles a player's request to draw a card from the deck.
+   *
+   * @param {string} playerId - The ID of the player drawing the card.
+   */
+
   public drawCard(playerId: string) {
     this._validGameState();
     // Check if it's the player's turn
@@ -340,6 +429,12 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       throw new Error('Player not found or no card to draw');
     }
   }
+
+  /**
+   * Applies a player's move to the game state.
+   *
+   * @param {GameMove<UNOMove>} placeCard - The move to be applied.
+   */
 
   public applyMove(placeCard: GameMove<UNOMove>): void {
     if (placeCard.move.card === undefined) {
@@ -380,11 +475,43 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
 
     this.state.topCard = placeCard.move.card;
-    // Need to add this to
-    // this._removePlacedCardFromHand(placeCard.move.card);
     this._updateCurrentPlayerIndexAndDir(placeCard.move, this.state.players);
     this._updateDeckStack(placeCard.move.card);
   }
+
+  /**
+   * Changes the color of the current top card, typically following a Wild card play.
+   *
+   * @param {CardColor} color - The new color to be set for the top card.
+   */
+
+  public colorChange(color: CardColor): void {
+    // Ensure the game is in the correct state
+    if (this.state.status !== 'IN_PROGRESS') {
+      throw new InvalidParametersError(GAME_NOT_IN_PROGRESS_MESSAGE);
+    }
+
+    // Validate the input color
+    const validColors = ['Red', 'Green', 'Yellow', 'Blue'];
+    if (!validColors.includes(color)) {
+      throw new InvalidParametersError('INVALID_COLOR');
+    }
+
+    // Check if the top card is a Wild or Wild Draw Four card
+    const currTopCard = this.state.topCard;
+    if (!currTopCard || (currTopCard.rank !== 'Wild' && currTopCard.rank !== '+4')) {
+      throw new InvalidParametersError('COLOR_CHANGE_NOT_ALLOWED');
+    }
+
+    // Change the color of the top card
+    this.state.topCard = { rank: currTopCard.rank, color };
+  }
+
+  /**
+   * Handles a player joining the game.
+   *
+   * @param {Player} player - The player attempting to join the game.
+   */
 
   public _join(player: Player): void {
     // Check if the player is already in the game
@@ -407,6 +534,42 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       this.startGame();
     }
   }
+  /*
+  public joinAI(difficulty: string): void {
+    // Ensure the game isn't full
+    if (this.state.players.length >= this.MAX_PLAYERS) {
+      throw new InvalidParametersError(GAME_FULL_MESSAGE);
+    }
+
+    // Create an AI player instance
+    const aiPlayerID = `AIEasy`; // Unique identifier for the AI player
+    const new Player(aiPlayerID, TownEmitter);
+
+    const aiPlayer: UNOPlayer = {
+      id: aiPlayerID,
+      cards: [],
+      // Additional properties if needed
+    };
+
+
+
+    // Add AI player to the game state
+    this.state.players.push(aiPlayer);
+
+    // Instantiate the AI logic (GreedyAI in this case)
+    this._players[aiPlayerID] = new EasyAi(this, aiPlayerID);
+
+    // Automatically start the game if the maximum number of players is reached
+    if (this.state.players.length === this.MAX_PLAYERS) {
+      this.startGame();
+    }
+  }
+*/
+
+  /**
+   * Starts the game if the minimum number of players is met.
+   * Resets the game if it's in an 'OVER' state.
+   */
 
   public startGame(): void {
     if (this.state.players.length < this.MIN_PLAYERS) {
@@ -434,6 +597,11 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
   // then start the game -> join game can call this function when gme is full.
 
   // Refactor leave, if the game was started with the Start Game button the code does not apply here.
+
+  /**
+   * Handles the process when a player leaves the game.
+   * Updates the game state accordingly.
+   */
 
   protected _leave(player: Player): void {
     // Check if the player is in the game
