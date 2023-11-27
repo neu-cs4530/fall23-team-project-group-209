@@ -38,6 +38,20 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
 
   MIN_PLAYERS = 2;
 
+  // Function to reset the game state.
+  private _resetGameState(): void {
+    this.state = {
+      moves: [],
+      deck: this._makeDeck(),
+      players: this.state.players.map(player => ({ ...player, cards: [] })),
+      topCard: undefined,
+      status: 'WAITING_TO_START',
+      currentPlayerIndex: 0,
+      playDirection: 'clockwise',
+      drawStack: 0,
+    };
+  }
+
   /**
    *
    * I think more logic needs to be updated, how will the game know if the player has no cards?
@@ -134,15 +148,15 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
   }
 
-  private _isPlayersTurn(playerId: string): void {
+  private _isPlayersTurn(playerId: string): boolean {
     const currentPlayerId = this.state.players[this.state.currentPlayerIndex].id;
-    if (playerId !== currentPlayerId) {
-      throw new InvalidParametersError('NOT_PLAYER_TURN');
-    }
+    return playerId === currentPlayerId;
   }
 
   private _validMove(move: UNOMove): boolean {
-    this._isPlayersTurn(move.player);
+    if (!this._isPlayersTurn(move.player)) {
+      throw new InvalidParametersError('NOT_PLAYER_TURN');
+    }
 
     // THIS is refundant code vvv
     const playerIdMakingMove = move.player;
@@ -200,26 +214,27 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
   // check if a Card is valid to play on topCard
   // TODO: Throw ERROR IF NOT VALID
   private _validCard(card: Card, topCard: Card): boolean {
-    // Check if the card is a Wild card (can be played on anything)
-
-    if (topCard.rank === '+4' && (card.rank === '+4' || card.rank === '+2')) {
-      return true;
+    // If there's a draw stack, check if the card continues the stack
+    if (this.state.drawStack > 0) {
+      if (topCard.rank === '+4') {
+        return card.rank === '+4';
+      }
+      if (topCard.rank === '+2') {
+        return card.rank === '+2' || card.rank === '+4';
+      }
+      // if the top card is not +2 or +4, we throw an Error as this condition is not possible
+      throw new InvalidParametersError(
+        'Draw stack is greater than 0 but the top card is not valid',
+      );
     }
 
-    if ((card.rank === 'Wild' || card.rank === '+4') && this.state.drawStack === 0) {
-      return true;
+    // Handle Wild and Wild Draw Four cards
+    if (card.rank === 'Wild' || card.rank === '+4') {
+      return true; // These can be played on any card if there's no draw stack
     }
 
-    // Check if the colors match (if the top card is not a Wild card)
-    if (
-      topCard.color !== 'Wildcard' &&
-      card.color === topCard.color &&
-      this.state.drawStack === 0
-    ) {
-      return true;
-    }
-
-    if (topCard.rank === '+2' && (card.rank === '+2' || card.rank === '+4')) {
+    // Check if the colors match
+    if (card.color === topCard.color) {
       return true;
     }
 
@@ -228,6 +243,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       return true;
     }
 
+    // If none of the conditions are met, the card is not valid
     throw new InvalidParametersError('INVALID_CARD');
   }
 
@@ -277,15 +293,33 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     return cards.some(card => card.rank === '+2' || card.rank === '+4');
   }
 
-  private _removePlacedCardFromHand(cardToRemove: Card): void {}
+  private _removePlacedCardFromHand(playerId: string, cardToRemove: Card): void {
+    const player = this.state.players.find(p => p.id === playerId);
+    if (!player) {
+      throw new Error('Player not found');
+    }
+
+    const cardIndex = player.cards.findIndex(
+      c =>
+        c.rank === cardToRemove.rank &&
+        (cardToRemove.color === 'Wildcard' || c.color === cardToRemove.color),
+    );
+
+    if (cardIndex === -1) {
+      throw new Error('Card not found in player hand');
+    }
+
+    player.cards.splice(cardIndex, 1);
+  }
 
   // player draws a card from deck and puts it into their own card array. If there are no cards create new deck of cards
   // and append to deck to put new cards into play.
   public drawCard(playerId: string) {
     this._validGameState();
     // Check if it's the player's turn
-    this._isPlayersTurn(playerId);
-
+    if (!this._isPlayersTurn(playerId)) {
+      throw new InvalidParametersError('NOT_PLAYER_TURN');
+    }
     // Check if the deck is empty
     if (this.state.deck.length === 0) {
       // Create a new deck and shuffle it
@@ -314,13 +348,29 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     if (this.state.topCard === undefined) {
       throw new InvalidParametersError('TOP CARD UNDEFINED');
     }
+    // Check if it's the correct player's turn
+    if (!this._isPlayersTurn(placeCard.move.player)) {
+      throw new InvalidParametersError('NOT_PLAYER_TURN');
+    }
 
     this._validGameState();
     this._validCard(placeCard.move.card, this.state.topCard);
     this._validMove(placeCard.move);
 
-    // Check if the card is defendable
+    // Remove the card from the player's hand
+    this._removePlacedCardFromHand(placeCard.move.player, placeCard.move.card);
+
+    // Currently player
     const currentPlayer = this.state.players[this.state.currentPlayerIndex];
+
+    // Checking a win condition for current player
+    if (currentPlayer.cards.length === 0) {
+      // The player has no cards left and wins the game
+      this.state.status = 'OVER';
+      this.state.winner = currentPlayer.id;
+      return; // Ending the game
+    }
+    // Check if the card is defendable
     if (!this._defendableCards(currentPlayer.cards) && this.state.drawStack > 0) {
       // Add cards to the player's hand based on drawStack
       for (let i = 0; i < this.state.drawStack; i++) {
@@ -330,7 +380,8 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
 
     this.state.topCard = placeCard.move.card;
-    this._removePlacedCardFromHand(placeCard.move.card);
+    // Need to add this to
+    // this._removePlacedCardFromHand(placeCard.move.card);
     this._updateCurrentPlayerIndexAndDir(placeCard.move, this.state.players);
     this._updateDeckStack(placeCard.move.card);
   }
@@ -362,11 +413,13 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       throw new InvalidParametersError('NOT_ENOUGH_PLAYERS_MESSAGE');
     }
 
-    this.state = {
-      ...this.state,
-      status: 'IN_PROGRESS',
-    };
+    // Reset the game state if the game is restarting
+    if (this.state.status === 'OVER') {
+      this._resetGameState();
+    }
 
+    // Initialize the game if it is in progress
+    this.state.status = 'IN_PROGRESS';
     this._initializeGame();
   }
 

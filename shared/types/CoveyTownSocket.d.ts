@@ -1,3 +1,5 @@
+import { CustomPromisifyLegacy } from "util";
+
 export type TownJoinResponse = {
   /** Unique ID that represents this player * */
   userID: string;
@@ -174,7 +176,7 @@ interface InteractableCommandBase {
   type: string;
 }
 
-export type InteractableCommand =  ViewingAreaUpdateCommand | JoinGameCommand | GameMoveCommand<TicTacToeMove> | LeaveGameCommand | StartGameCommand | GameMoveCommand<UNOMove> | GameMoveCommand<UNOPickUp>;
+export type InteractableCommand =  ViewingAreaUpdateCommand | JoinGameCommand | GameMoveCommand<TicTacToeMove> | LeaveGameCommand | StartGameCommand | GameMoveCommand<UNOMove> | DrawCommand | JoinAICommand;
 export interface ViewingAreaUpdateCommand  {
   type: 'ViewingAreaUpdate';
   update: ViewingArea;
@@ -196,10 +198,25 @@ export interface StartGameCommand {
   type: 'StartGame';
   gameID: GameInstanceID;
 }
+
+export interface DrawCommand {
+  type: 'DrawCard';
+  gameID: GameInstanceID;
+  id: PlayerID;
+}
+
+export interface JoinAICommand {
+  type: 'JoinAI';
+  gameID: GameInstanceID;
+  difficulty: string;
+}
 export type InteractableCommandReturnType<CommandType extends InteractableCommand> = 
-  CommandType extends JoinGameCommand ? { gameID: string}:
+  CommandType extends JoinGameCommand ? { gameID: string} :
+  CommandType extends JoinAICommand ? { gameID: string} :
   CommandType extends ViewingAreaUpdateCommand ? undefined :
   CommandType extends GameMoveCommand<TicTacToeMove> ? undefined :
+  CommandType extends GameMoveCommand<UNOMove> ? undefined :
+  CommandType extends DrawCommand ? undefined :
   CommandType extends LeaveGameCommand ? undefined :
   CommandType extends StartGameCommand ? { gameID: string}:
   never;
