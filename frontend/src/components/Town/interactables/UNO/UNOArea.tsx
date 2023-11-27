@@ -253,14 +253,22 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
   // if waiting to start, return the join game screen.
   // otherwise, render the uno table.
   return (
-    <Container minW='full' paddingX={0} bgColor='tomato'>
+    <Container minW='full' paddingX={0}>
       <AIModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}></AIModal>
       <VStack minW='max' bgColor='white' align='center' paddingBottom='5'>
         {listPlayers}
         <Divider />
         {statusText()}
       </VStack>
-      {status !== 'WAITING_TO_START' && <UNOTable gameAreaController={gameAreaController} />}
+      <Container
+        bgColor='tomato'
+        minW='full'
+        border='solid'
+        borderWidth='5px'
+        borderRadius='5px'
+        borderColor='black'>
+        {status !== 'WAITING_TO_START' && <UNOTable gameAreaController={gameAreaController} />}
+      </Container>
     </Container>
   );
 }

@@ -1,16 +1,35 @@
-import { Box, Container, HStack, Image, useToast, VStack } from '@chakra-ui/react';
+import {
+  Box,
+  Container,
+  GridItem,
+  HStack,
+  Image,
+  Modal,
+  ModalContent,
+  ModalOverlay,
+  SimpleGrid,
+  useToast,
+  VStack,
+} from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import UNOAreaController from '../../../../classes/interactable/UNOAreaController';
 import PlayerController from '../../../../classes/PlayerController';
 import useTownController from '../../../../hooks/useTownController';
-import { Card as PlayerCard } from '../../../../types/CoveyTownSocket';
+import { Card as PlayerCard, CardColor } from '../../../../types/CoveyTownSocket';
 
 export type UNOGameProps = {
   gameAreaController: UNOAreaController;
 };
 
 // function to create front card sprite
-function RenderCard({ card, onClick }: { card: PlayerCard; onClick?: () => void }): JSX.Element {
+function RenderCard({
+  card,
+  onClick,
+}: {
+  card: PlayerCard;
+  deckColor?: CardColor;
+  onClick?: () => void;
+}): JSX.Element {
   const cardText =
     card.rank === 'Reverse'
       ? 'R'
@@ -25,6 +44,7 @@ function RenderCard({ card, onClick }: { card: PlayerCard; onClick?: () => void 
       borderRadius='3px'
       paddingX='15px'
       paddingY='18px'
+      margin='auto'
       maxH={59}
       outline='solid'
       outlineColor='black'
@@ -37,20 +57,20 @@ function RenderCard({ card, onClick }: { card: PlayerCard; onClick?: () => void 
 }
 
 // function to display card count for opponents
-function RenderOpponentCards({ count }: { count: number }): JSX.Element {
-  return (
-    <Box
-      textAlign='center'
-      borderRadius='3px'
-      paddingX='15px'
-      maxH={59}
-      paddingY='18px'
-      outline='solid'
-      bg='lightgray'>
-      {count}
-    </Box>
-  );
-}
+// function RenderOpponentCards({ count }: { count: number }): JSX.Element {
+//   return (
+//     <Box
+//       textAlign='center'
+//       borderRadius='3px'
+//       paddingX='15px'
+//       maxH={59}
+//       paddingY='18px'
+//       outline='solid'
+//       bg='lightgray'>
+//       {count}
+//     </Box>
+//   );
+// }
 
 // function to create our player in view
 // onClick takes card index and sends to controller
@@ -60,11 +80,13 @@ function RenderPlayer({
   cards,
   onClick,
   isYourTurn,
+  setModalOpen,
 }: {
   username: string;
   cards: PlayerCard[];
   onClick: (index: number) => void;
   isYourTurn: boolean;
+  setModalOpen: (arg0: boolean) => void;
 }) {
   return (
     <Container>
@@ -92,13 +114,13 @@ function RenderOpponent({
   theirTurn: boolean;
 }) {
   return (
-    <Container>
-      <VStack>
+    <Container paddingX='100px' minW='fit-content'>
+      <VStack minW='full'>
         <HStack>
           <Image src='/user.png' boxSize='80px' alt={username} />
-          <RenderOpponentCards count={cardCount} />
         </HStack>
         <span>{`${username}${theirTurn ? ' (their turn)' : ''}`}</span>
+        <span>{`${cardCount} card(s) left`}</span>
       </VStack>
     </Container>
   );
@@ -118,13 +140,14 @@ function RenderDeck({ onClick }: { onClick: () => void }): JSX.Element {
 }
 
 /**
- * Where the actual gameplay occurs.
+ * Where the actual gameplay renders and occurs.
  *
  * @returns
  */
 export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Element {
   const townAreaController = useTownController();
   const toast = useToast();
+  const [modalOpen, setModalOpen] = useState(false);
   //states to hold values
   const playerList: PlayerController[] = [];
   const ourPlayer = townAreaController.ourPlayer.id;
@@ -140,6 +163,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
   const [othersCards, setOthersCards] = useState(gameAreaController.othersCards);
   const [ourTurn, setOurTurn] = useState(gameAreaController.isOurTurn);
   const [whoseTurn, setWhoseTurn] = useState(gameAreaController.whoseTurn);
+  const [cardChosen, setCardChosen] = useState<PlayerCard | undefined>(undefined); //used for wild and +4
 
   useEffect(() => {
     //functions to update states TODO
@@ -206,26 +230,32 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
     }
   };
   const onCardClick = async (idx: number) => {
-    try {
-      await gameAreaController.makeMove(cards[idx]);
-    } catch (err) {
-      toast({
-        title: 'Error placing card',
-        description: (err as Error).toString(),
-        status: 'error',
-      });
+    if (cards[idx].rank === '+4' || cards[idx].rank === 'Wild') {
+      setCardChosen(cards[idx]);
+      setModalOpen(true);
+      // setCardChosen(undefined); set this somewhere else
+    } else {
+      try {
+        await gameAreaController.makeMove(cards[idx]);
+      } catch (err) {
+        toast({
+          title: 'Error placing card',
+          description: (err as Error).toString(),
+          status: 'error',
+        });
+      }
     }
   };
   function View(): JSX.Element {
     if (p1 && p2 && p3 && p4) {
       return (
-        <VStack minH='full' paddingY='30px' spacing='100px' margin='auto' paddingRight='50px'>
+        <VStack minH='full' minW='full' paddingY='30px' spacing='100px'>
           <RenderOpponent
             username={playerList.at(2)?.userName ?? ''}
             cardCount={othersCards?.get(p3.id) ?? 0}
             theirTurn={playerList.at(2)?.id === whoseTurn?.id || false}
           />
-          <HStack minW='full' spacing='96px' margin='auto'>
+          <HStack paddingRight='70px'>
             <RenderOpponent
               username={playerList.at(3)?.userName ?? ''}
               cardCount={othersCards?.get(p4.id) ?? 0}
@@ -244,6 +274,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
             cards={cards}
             onClick={onCardClick}
             isYourTurn={ourTurn}
+            setModalOpen={setModalOpen}
           />
         </VStack>
       );
@@ -251,25 +282,28 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
       return (
         <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
           <></>
-          <HStack minW='full' spacing='100px' align='stretch'>
+          <HStack alignItems='stretch' paddingRight='100px'>
             <RenderOpponent
               username={playerList.at(2)?.userName ?? ''}
               cardCount={othersCards?.get(p3.id) ?? 0}
               theirTurn={playerList.at(2)?.id === whoseTurn?.id || false}
             />
-            <RenderCard card={topCard} />
-            <RenderDeck onClick={onDeckClick} />
             <RenderOpponent
               username={playerList.at(1)?.userName ?? ''}
               cardCount={othersCards?.get(p2.id) ?? 0}
               theirTurn={playerList.at(1)?.id === whoseTurn?.id || false}
             />
           </HStack>
+          <HStack>
+            <RenderCard card={topCard} />
+            <RenderDeck onClick={onDeckClick} />
+          </HStack>
           <RenderPlayer
             username={playerList.at(0)?.userName ?? ''}
             cards={cards}
             onClick={onCardClick}
             isYourTurn={ourTurn}
+            setModalOpen={setModalOpen}
           />
         </VStack>
       );
@@ -281,7 +315,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
             cardCount={othersCards?.get(p2.id) ?? 0}
             theirTurn={playerList.at(1)?.id === whoseTurn?.id || false}
           />
-          <HStack minW='full' spacing='100px' align='stretch'>
+          <HStack>
             <RenderCard card={topCard} />
             <RenderDeck onClick={onDeckClick} />
           </HStack>
@@ -290,6 +324,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
             cards={cards}
             onClick={onCardClick}
             isYourTurn={ourTurn}
+            setModalOpen={setModalOpen}
           />
         </VStack>
       );
@@ -303,13 +338,113 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
             <RenderDeck onClick={onDeckClick} />
             <RenderOpponent username={'test'} cardCount={0} theirTurn={false} />
           </HStack>
-          <RenderPlayer username={'test'} cards={cards} onClick={() => {}} isYourTurn={false} />
+          <RenderPlayer
+            username={'test'}
+            cards={cards}
+            onClick={() => {}}
+            isYourTurn={false}
+            setModalOpen={setModalOpen}
+          />
         </VStack>
       );
   }
 
+  function ColorPickingModal({
+    isOpen,
+    onClose,
+    card,
+  }: {
+    isOpen: boolean;
+    onClose: () => void;
+    card: PlayerCard;
+  }): JSX.Element {
+    return (
+      <Modal size='md' isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent alignItems='center' textAlign='center' paddingY='30px'>
+          <VStack spacing='3'>
+            <span>{'You placed a +4 or a Wildcard! Pick the next color of the stack.'}</span>
+            <SimpleGrid columns={2}>
+              <GridItem>
+                <Box
+                  margin='auto'
+                  borderRadius='2px'
+                  w='150px'
+                  h='150px'
+                  outline='solid'
+                  outlineColor='black'
+                  bg='green'
+                  onClick={async () => {
+                    //await gameAreaController.changeColor('Green');
+                    await gameAreaController.makeMove(card);
+                    onClose();
+                  }}
+                />
+              </GridItem>
+              <GridItem>
+                <Box
+                  margin='auto'
+                  borderRadius='3px'
+                  w='150px'
+                  h='150px'
+                  outline='solid'
+                  outlineColor='black'
+                  bg='blue'
+                  onClick={async () => {
+                    //await gameAreaController.changeColor('Blue');
+                    await gameAreaController.makeMove(card);
+                    onClose();
+                  }}
+                />
+              </GridItem>
+              <GridItem>
+                <Box
+                  margin='auto'
+                  borderRadius='3px'
+                  w='150px'
+                  h='150px'
+                  outline='solid'
+                  outlineColor='black'
+                  bg='yellow'
+                  onClick={async () => {
+                    //await gameAreaController.changeColor('Yellow');
+                    await gameAreaController.makeMove(card);
+                    onClose();
+                  }}
+                />
+              </GridItem>
+              <GridItem>
+                <Box
+                  margin='auto'
+                  borderRadius='3px'
+                  w='150px'
+                  h='150px'
+                  outline='solid'
+                  outlineColor='black'
+                  bg='red'
+                  onClick={async () => {
+                    //await gameAreaController.changeColor('Red');
+                    await gameAreaController.makeMove(card);
+                    onClose();
+                  }}
+                />
+              </GridItem>
+            </SimpleGrid>
+          </VStack>
+        </ModalContent>
+      </Modal>
+    );
+  }
+
   return (
     <Container>
+      {cardChosen && (
+        <ColorPickingModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          card={cardChosen}
+        />
+      )}
       <View />
     </Container>
   );
