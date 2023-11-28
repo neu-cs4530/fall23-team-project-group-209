@@ -1,4 +1,3 @@
-import { deepEqual } from 'assert';
 import { Card, GameArea, GameStatus, UNOGameState, UNOPlayer } from '../../types/CoveyTownSocket';
 import PlayerController from '../PlayerController';
 import GameAreaController, { GameEventTypes } from './GameAreaController';
