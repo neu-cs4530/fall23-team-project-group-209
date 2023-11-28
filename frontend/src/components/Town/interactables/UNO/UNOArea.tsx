@@ -1,4 +1,8 @@
-import { GameResult, GameStatus, InteractableID } from '../../../../../../shared/types/CoveyTownSocket';
+import {
+  GameResult,
+  GameStatus,
+  InteractableID,
+} from '../../../../../../shared/types/CoveyTownSocket';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useInteractableAreaController } from '../../../../classes/TownController';
 import UNOAreaController from '../../../../classes/interactable/UNOAreaController';

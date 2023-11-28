@@ -56,22 +56,6 @@ function RenderCard({
   );
 }
 
-// function to display card count for opponents
-// function RenderOpponentCards({ count }: { count: number }): JSX.Element {
-//   return (
-//     <Box
-//       textAlign='center'
-//       borderRadius='3px'
-//       paddingX='15px'
-//       maxH={59}
-//       paddingY='18px'
-//       outline='solid'
-//       bg='lightgray'>
-//       {count}
-//     </Box>
-//   );
-// }
-
 // function to create our player in view
 // onClick takes card index and sends to controller
 // disable pressing cards on not our turn
@@ -80,13 +64,11 @@ function RenderPlayer({
   cards,
   onClick,
   isYourTurn,
-  setModalOpen,
 }: {
   username: string;
   cards: PlayerCard[];
   onClick: (index: number) => void;
   isYourTurn: boolean;
-  setModalOpen: (arg0: boolean) => void;
 }) {
   return (
     <Container>
@@ -298,7 +280,6 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
             cards={cards}
             onClick={onCardClick}
             isYourTurn={ourTurn}
-            setModalOpen={setModalOpen}
           />
         </VStack>
       );
@@ -327,7 +308,6 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
             cards={cards}
             onClick={onCardClick}
             isYourTurn={ourTurn}
-            setModalOpen={setModalOpen}
           />
         </VStack>
       );
@@ -348,29 +328,10 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
             cards={cards}
             onClick={onCardClick}
             isYourTurn={ourTurn}
-            setModalOpen={setModalOpen}
           />
         </VStack>
       );
-    } else
-      return (
-        <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
-          <RenderOpponent username={'test'} cardCount={0} theirTurn={false} />
-          <HStack minW='full' spacing='100px' align='stretch'>
-            <RenderOpponent username={'test'} cardCount={0} theirTurn={false} />
-            <RenderCard card={topCard} onClick={() => {}} />
-            <RenderDeck onClick={onDeckClick} />
-            <RenderOpponent username={'test'} cardCount={0} theirTurn={false} />
-          </HStack>
-          <RenderPlayer
-            username={'test'}
-            cards={cards}
-            onClick={() => {}}
-            isYourTurn={false}
-            setModalOpen={setModalOpen}
-          />
-        </VStack>
-      );
+    } else return <></>;
   }
 
   function ColorPickingModal({
