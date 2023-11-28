@@ -1,4 +1,4 @@
-import { GameStatus, InteractableID } from '../../../../../../shared/types/CoveyTownSocket';
+import { GameResult, GameStatus, InteractableID } from '../../../../../../shared/types/CoveyTownSocket';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useInteractableAreaController } from '../../../../classes/TownController';
 import UNOAreaController from '../../../../classes/interactable/UNOAreaController';
@@ -37,7 +37,7 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
   const [isStarting, setIsStarting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   // states to hold game values from controller
-  //const [history, setHistory] = useState<GameResult[]>(gameAreaController.history);
+  const [, setHistory] = useState<GameResult[]>(gameAreaController.history);
   const [status, setGameStatus] = useState<GameStatus>(gameAreaController.status);
   //const [observers, setObservers] = useState<PlayerController[]>(gameAreaController.observers);
   const [inGame, setInGame] = useState(gameAreaController.isPlayer);
@@ -60,7 +60,6 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
       setP2(gameAreaController.player2);
       setP3(gameAreaController.player3);
       setP4(gameAreaController.player4);
-      //setHistory(gameAreaController.history);
       setGameStatus(gameAreaController.status || 'WAITING_TO_START');
       //setObservers(gameAreaController.observers);
       setInGame(gameAreaController.isPlayer);
@@ -69,15 +68,25 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
       setDirection(gameAreaController.playerDirection);
     };
     const endGame = () => {
-      //setHistory(gameAreaController.history);
+      setHistory(gameAreaController.history);
+    };
+    const turnChanged = () => {
+      setWhoseTurn(gameAreaController.whoseTurn);
+    };
+    const directionChanged = () => {
+      setDirection(gameAreaController.playerDirection);
     };
     //listeners from controller
     gameAreaController.addListener('gameUpdated', updateGame);
     gameAreaController.addListener('gameEnded', endGame);
+    gameAreaController.addListener('turnChanged', turnChanged);
+    gameAreaController.addListener('directionChanged', directionChanged);
     //TODO
     return () => {
       gameAreaController.removeListener('gameUpdated', updateGame);
       gameAreaController.removeListener('gameEnded', endGame);
+      gameAreaController.removeListener('turnChanged', turnChanged);
+      gameAreaController.removeListener('directionChanged', directionChanged);
     };
   }, [gameAreaController, townController]);
 

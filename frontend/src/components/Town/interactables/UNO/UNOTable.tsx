@@ -174,20 +174,44 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
       setP4(gameAreaController.player4);
       setCards(gameAreaController.ourDeck || []);
       setOthersCards(gameAreaController.othersCards);
-      setTopCard(gameAreaController.topCard || ({ color: 'Blue', rank: 'Wild' } as PlayerCard));
       setOurTurn(gameAreaController.isOurTurn);
       setWhoseTurn(gameAreaController.whoseTurn);
+      if (gameAreaController.topCard) {
+        setTopCard(gameAreaController.topCard);
+      }
     };
     const endGame = () => {
       setWinner(gameAreaController.winner);
     };
+    const turnChanged = () => {
+      setWhoseTurn(gameAreaController.whoseTurn);
+    };
+    const ourDeckChanged = () => {
+      setCards(gameAreaController.ourDeck || []);
+    };
+    const topCardChanged = () => {
+      if (gameAreaController.topCard) {
+        setTopCard(gameAreaController.topCard);
+      }
+    };
+    const otherCardsChanged = () => {
+      setOthersCards(gameAreaController.othersCards);
+    };
     //listeners from controller TODO
     gameAreaController.addListener('gameUpdated', updateGame);
     gameAreaController.addListener('gameEnd', endGame);
+    gameAreaController.addListener('turnChanged', turnChanged);
+    gameAreaController.addListener('ourDeckChanged', ourDeckChanged);
+    gameAreaController.addListener('topCardChanged', topCardChanged);
+    gameAreaController.addListener('otherCardsChanged', otherCardsChanged);
     //TODO
     return () => {
       gameAreaController.removeListener('gameUpdated', updateGame);
       gameAreaController.removeListener('gameEnd', endGame);
+      gameAreaController.removeListener('turnChanged', turnChanged);
+      gameAreaController.removeListener('ourDeckChanged', ourDeckChanged);
+      gameAreaController.removeListener('topCardChanged', topCardChanged);
+      gameAreaController.removeListener('otherCardsChanged', otherCardsChanged);
     };
   }, [gameAreaController, townAreaController]);
 
