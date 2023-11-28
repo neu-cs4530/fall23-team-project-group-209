@@ -1,4 +1,3 @@
-import { deepEqual } from 'assert';
 import { Card, GameArea, GameStatus, UNOGameState, UNOPlayer } from '../../types/CoveyTownSocket';
 import PlayerController from '../PlayerController';
 import GameAreaController, { GameEventTypes } from './GameAreaController';
@@ -210,7 +209,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
    */
   get whoseTurn(): PlayerController | undefined {
     const playerIndex: number | undefined = this._model.game?.state.currentPlayerIndex;
-    if ((playerIndex !== undefined) && this.isActive()) {
+    if (playerIndex !== undefined && this.isActive()) {
       const player: UNOPlayer | undefined = this._model.game?.state.players[playerIndex];
       return this.occupants.find(occupant => occupant.id === player?.id);
     } else {
@@ -242,11 +241,11 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     return this._model.game?.state.status === 'IN_PROGRESS';
   }
 
-/**
- * Checks to see how the model has changed, and then emits events
- * to the front end so it can update the visual display. 
- * @param newModel the model that the old model is compared to 
- */
+  /**
+   * Checks to see how the model has changed, and then emits events
+   * to the front end so it can update the visual display.
+   * @param newModel the model that the old model is compared to
+   */
   protected _updateFrom(newModel: GameArea<UNOGameState>): void {
     //seems like it makes sense to store old model values, call super
     //check which values updated and call emitters based on it
@@ -267,7 +266,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     if (oldTurn?.id !== newTurn?.id) {
       this.emit('turnChanged', this.isOurTurn);
     }
-    if (!this._compareCard(oldTopCard, newTopCard)) { 
+    if (!this._compareCard(oldTopCard, newTopCard)) {
       this.emit('topCardChanged', newTopCard);
     }
     if (!this._compareDecks(oldDrawDeck, newDrawDeck)) {
@@ -300,11 +299,11 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
       return false;
     } else {
       return (
-        pile1?.length === pile2?.length && pile1?.every((card, index) => this._compareCard(card, pile2?.[index]))
+        pile1?.length === pile2?.length &&
+        pile1?.every((card, index) => this._compareCard(card, pile2?.[index]))
       );
     }
   }
-
 
   /**
    * this private helper helps to determine if the old map for others player and their amount of cards
@@ -330,7 +329,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
       // if the key doesnt exist in others2, set flag,
       // if the key does exist in others2, check if same
       // value in both, and set flag if not
-      for (let [player, num] of others1) {
+      for (const [player, num] of others1) {
         otherNum = others2.get(player);
         //in case undefiend, make sure key exists
         if (otherNum !== num || (otherNum === undefined && others2.has(player))) {
@@ -387,8 +386,8 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
       type: 'DrawCard',
       gameID: instanceID,
       id: this._townController.ourPlayer.id,
-      },
-    )}
+    });
+  }
 
   /**
    * this function sends a request to the server for this game to start
@@ -408,7 +407,7 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
   /**
    * this function sends a request to the server for the game to have an AI player join
    * if the game is already in progress, throws GAME_ALREADY_IN_PROGRESS
-   * @param difficulty 
+   * @param difficulty
    */
   public async joinAI(difficulty: string) {
     const instanceID = this._instanceID;
@@ -418,8 +417,8 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
     await this._townController.sendInteractableCommand(this.id, {
       type: 'JoinAI',
       gameID: instanceID,
-      difficulty: difficulty
-  });
+      difficulty: difficulty,
+    });
   }
 
   /**
@@ -446,6 +445,6 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
    * @returns true if the cards have the same rank and color
    */
   private _compareCard(card: Card | undefined, card2: Card | undefined): boolean {
-    return (card?.color === card2?.color) && (card?.rank === card2?.rank);
+    return card?.color === card2?.color && card?.rank === card2?.rank;
   }
 }

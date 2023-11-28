@@ -14,7 +14,7 @@ import GameAreaController from './GameAreaController';
 import UNOAreaController, { GAME_ALREADY_IN_PROGRESS } from './UNOAreaController';
 import { mock } from 'jest-mock-extended';
 import assert from 'assert';
-import { NO_GAME_IN_PROGRESS_ERROR, PLAYER_NOT_IN_GAME_ERROR } from './TicTacToeAreaController';
+import { NO_GAME_IN_PROGRESS_ERROR } from './TicTacToeAreaController';
 //DETERMINE TESTING LABELS
 
 describe('[] UNOAreaController', () => {
@@ -303,7 +303,6 @@ describe('[] UNOAreaController', () => {
       it('should return undefined if there is no player3', () => {
         const ourUNOPlayer = { cards: [], id: ourPlayer.id };
         const otherUNOPlayer = { cards: [], id: otherPlayers[0].id };
-        const anotherUNOPlayer = { cards: [], id: otherPlayers[1].id };
         const controller = UNOAreaControllerWithProp({
           status: 'IN_PROGRESS',
           players: [ourUNOPlayer, otherUNOPlayer],
@@ -412,9 +411,9 @@ describe('[] UNOAreaController', () => {
         expect(controller.playerDirection).toBe(undefined);
       });
       it('should return undefined if game inst initialized', () => {
-        const controller = UNOAreaControllerWithProp({
-          undefinedGame: true,
-        });
+        // const controller = UNOAreaControllerWithProp({
+        //   undefinedGame: true,
+        // });
       });
     });
     describe('topCard', () => {
@@ -646,20 +645,20 @@ describe('[] UNOAreaController', () => {
       });
     });
     describe('changeColor', () => {
-        it('should throw an error if the game is not in progress', async () => {
-            const controller = UNOAreaControllerWithProp({
-                status: 'WAITING_TO_START',
-            });
-            await expect(async () => controller.changeColor('Red')).rejects.toEqual(
-                new Error(NO_GAME_IN_PROGRESS_ERROR),
-            );
+      it('should throw an error if the game is not in progress', async () => {
+        const controller = UNOAreaControllerWithProp({
+          status: 'WAITING_TO_START',
         });
-        it('should call towncontroller.sendInteractableCommand', async () => {
-            const ourUNOPlayer: UNOPlayer = { cards: [{ color: 'Blue', rank: 1 }], id: ourPlayer.id };
-            const otherUNOPlayer = { cards: [], id: otherPlayers[0].id };
-            const controller = UNOAreaControllerWithProp({
-              status: 'IN_PROGRESS',
-              players: [ourUNOPlayer, otherUNOPlayer],
+        await expect(async () => controller.changeColor('Red')).rejects.toEqual(
+          new Error(NO_GAME_IN_PROGRESS_ERROR),
+        );
+      });
+      it('should call towncontroller.sendInteractableCommand', async () => {
+        const ourUNOPlayer: UNOPlayer = { cards: [{ color: 'Blue', rank: 1 }], id: ourPlayer.id };
+        const otherUNOPlayer = { cards: [], id: otherPlayers[0].id };
+        const controller = UNOAreaControllerWithProp({
+          status: 'IN_PROGRESS',
+          players: [ourUNOPlayer, otherUNOPlayer],
         });
         const instanceID = nanoid();
         mockTownController.sendInteractableCommand.mockImplementationOnce(async () => {
@@ -671,7 +670,7 @@ describe('[] UNOAreaController', () => {
         expect(mockTownController.sendInteractableCommand).toHaveBeenCalledWith(controller.id, {
           type: 'ColorChange',
           gameID: instanceID,
-          color: 'Red'
+          color: 'Red',
         });
       });
     });
@@ -960,7 +959,7 @@ describe('[] UNOAreaController', () => {
       });
     });
     it('should call super._updateFrom', () => {
-      const ourUNOPlayer: UNOPlayer = {cards: [], id: ourPlayer.id }
+      const ourUNOPlayer: UNOPlayer = { cards: [], id: ourPlayer.id };
       //eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore - we are testing spying on a private method
       const spy = jest.spyOn(GameAreaController.prototype, '_updateFrom');
