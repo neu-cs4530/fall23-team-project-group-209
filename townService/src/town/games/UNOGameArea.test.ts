@@ -476,7 +476,7 @@ describe('UNOGameArea', () => {
               player1,
             ),
           ).toThrowError('Test Error');
-          expect(joinAISpy).toHaveBeenCalledWith(player1);
+          expect(joinAISpy).toHaveBeenCalledWith('Easy');
           expect(interactableUpdateSpy).not.toHaveBeenCalled();
         });
       });
