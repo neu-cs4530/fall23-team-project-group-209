@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-cycle
 import UNOGame from '../UNOGame';
 
-import { Card, GameMove, UNOMove } from '../../../types/CoveyTownSocket';
+import { GameMove, UNOMove } from '../../../types/CoveyTownSocket';
 
 class EasyAIStrategy {
   private _game: UNOGame;
