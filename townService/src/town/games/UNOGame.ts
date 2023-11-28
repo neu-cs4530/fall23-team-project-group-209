@@ -455,29 +455,32 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     this._validCard(placeCard.move.card, this.state.topCard);
     this._validMove(placeCard.move);
 
-    // Remove the card from the player's hand
-    this._removePlacedCardFromHand(placeCard.move.player, placeCard.move.card);
-
     // Currently player
     const currentPlayer = this.state.players[this.state.currentPlayerIndex];
 
-    // Checking a win condition for current player
-    if (currentPlayer.cards.length === 0) {
-      // The player has no cards left and wins the game
-      this.state.status = 'OVER';
-      this.state.winner = currentPlayer.id;
-      return; // Ending the game
-    }
-    // Check if the card is defendable
     if (!this._defendableCards(currentPlayer.cards) && this.state.drawStack > 0) {
+      // Check if the card is defendable
       // Add cards to the player's hand based on drawStack
       for (let i = 0; i < this.state.drawStack; i++) {
         this.drawCard(currentPlayer.id);
       }
       this.state.drawStack = 0;
+    } else {
+      // Remove the card from the player's hand
+      this._removePlacedCardFromHand(placeCard.move.player, placeCard.move.card);
+
+      // Checking a win condition for current player
+      if (currentPlayer.cards.length === 0) {
+        // The player has no cards left and wins the game
+        this.state.status = 'OVER';
+        this.state.winner = currentPlayer.id;
+        return; // Ending the game
+      }
+      this.state.topCard = placeCard.move.card;
     }
 
-    this.state.topCard = placeCard.move.card;
+    console.log(this.state.drawStack);
+
     this._updateCurrentPlayerIndexAndDir(placeCard.move, this.state.players);
     this._updateDeckStack(placeCard.move.card);
 

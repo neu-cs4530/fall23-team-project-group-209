@@ -361,7 +361,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
                   bg='green'
                   onClick={async () => {
                     await gameAreaController.changeColor('Green');
-                    await gameAreaController.makeMove(card);
+                    await gameAreaController.makeMove({ rank: card.rank, color: 'Green' });
                     onClose();
                   }}
                 />
@@ -377,7 +377,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
                   bg='blue'
                   onClick={async () => {
                     await gameAreaController.changeColor('Blue');
-                    await gameAreaController.makeMove(card);
+                    await gameAreaController.makeMove({ rank: card.rank, color: 'Blue' });
                     onClose();
                   }}
                 />
@@ -393,7 +393,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
                   bg='yellow'
                   onClick={async () => {
                     await gameAreaController.changeColor('Yellow');
-                    await gameAreaController.makeMove(card);
+                    await gameAreaController.makeMove({ rank: card.rank, color: 'Yellow' });
                     onClose();
                   }}
                 />
@@ -409,7 +409,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
                   bg='red'
                   onClick={async () => {
                     await gameAreaController.changeColor('Red');
-                    await gameAreaController.makeMove(card);
+                    await gameAreaController.makeMove({ rank: card.rank, color: 'Red' });
                     onClose();
                   }}
                 />
