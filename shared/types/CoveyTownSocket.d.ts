@@ -305,6 +305,7 @@ export interface UNOPlayer{
   id: PlayerID;
   gameID?: GameInstanceID; // do we need this. I think so.
   cards: Card[];
+  isAI?: boolean;
 }
 
 /**

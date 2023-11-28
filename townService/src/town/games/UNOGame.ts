@@ -15,7 +15,8 @@ import {
   UNOSuit,
 } from '../../types/CoveyTownSocket';
 import Game from './Game';
-// import EasyAi from './unoAi/EasyAi';
+// eslint-disable-next-line import/no-cycle
+import EasyAIStrategy from './unoAi/EasyAi';
 
 /**
  * @see README.md (and scroll to the section added at the bottom talking about rule changes.)
@@ -43,6 +44,8 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
 
   // Maximum number of players allowed in the game.
   MAX_PLAYERS = 4;
+
+  private _aiStrategies: { [playerId: string]: EasyAIStrategy } = {};
 
   // Minimum number of players required to start the game
   MIN_PLAYERS = 2;
@@ -192,7 +195,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
    * @return {boolean} True if the move is valid.
    */
 
-  private _validMove(move: UNOMove): boolean {
+  public _validMove(move: UNOMove): boolean {
     if (!this._isPlayersTurn(move.player)) {
       throw new InvalidParametersError('NOT_PLAYER_TURN');
     }
@@ -477,14 +480,24 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     this.state.topCard = placeCard.move.card;
     this._updateCurrentPlayerIndexAndDir(placeCard.move, this.state.players);
     this._updateDeckStack(placeCard.move.card);
+
+    // Determine the index of the next player
+    const nextPlayerIndex = this.state.currentPlayerIndex;
+    const nextPlayer = this.state.players[nextPlayerIndex];
+
+    // Check if the next player is an AI
+    if (nextPlayer.isAI) {
+      // Assuming each AI player has an EasyAIStrategy instance in this._aiStrategies
+      this._aiStrategies[nextPlayer.id].makeMove();
+    }
   }
 
   /**
-   * Changes the color of the current top card, typically following a Wild card play.
+   * Changes the color of all Wild and Wild Draw Four cards in the current player's hand.
    *
-   * @param {CardColor} color - The new color to be set for the top card.
+   * @param {CardColor} color - The new color to be set for these cards.
+   * @throws {InvalidParametersError} If the game is not in progress or the color is invalid.
    */
-
   public colorChange(color: CardColor): void {
     // Ensure the game is in the correct state
     if (this.state.status !== 'IN_PROGRESS') {
@@ -497,14 +510,18 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       throw new InvalidParametersError('INVALID_COLOR');
     }
 
-    // Check if the top card is a Wild or Wild Draw Four card
-    const currTopCard = this.state.topCard;
-    if (!currTopCard || (currTopCard.rank !== 'Wild' && currTopCard.rank !== '+4')) {
-      throw new InvalidParametersError('COLOR_CHANGE_NOT_ALLOWED');
+    // Identify the current player
+    const currentPlayer = this.state.players[this.state.currentPlayerIndex];
+    if (!currentPlayer) {
+      throw new InvalidParametersError('CURRENT_PLAYER_NOT_FOUND');
     }
 
-    // Change the color of the top card
-    this.state.topCard = { rank: currTopCard.rank, color };
+    // Iterate through the current player's hand and change the color of all Wild and +4 cards
+    currentPlayer.cards.forEach(card => {
+      if (card.rank === 'Wild' || card.rank === '+4') {
+        card.color = color;
+      }
+    });
   }
 
   /**
@@ -534,37 +551,35 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       this.startGame();
     }
   }
-  /*
+
   public joinAI(difficulty: string): void {
     // Ensure the game isn't full
     if (this.state.players.length >= this.MAX_PLAYERS) {
       throw new InvalidParametersError(GAME_FULL_MESSAGE);
     }
 
-    // Create an AI player instance
-    const aiPlayerID = `AIEasy`; // Unique identifier for the AI player
-    const new Player(aiPlayerID, TownEmitter);
+    // Find the first non-AI player to replace with an AI player
+    const nonAIPlayer = this.state.players.find(player => !player.isAI);
+    if (nonAIPlayer) {
+      // Update the found player to be an AI player
+      nonAIPlayer.isAI = true;
 
-    const aiPlayer: UNOPlayer = {
-      id: aiPlayerID,
-      cards: [],
-      // Additional properties if needed
-    };
+      // Initialize AI logic for this player
+      // Create a new EasyAIStrategy instance for this AI player
+      this._aiStrategies[nonAIPlayer.id] = new EasyAIStrategy(this, nonAIPlayer.id);
 
+      // Optionally, update the game state to reflect the change
+      // this._stateUpdated(this.state);
+    } else {
+      // Handle the case where all players are already AI or no players are in the game
+      throw new InvalidParametersError('NO_HUMAN_PLAYER_TO_REPLACE');
+    }
 
-
-    // Add AI player to the game state
-    this.state.players.push(aiPlayer);
-
-    // Instantiate the AI logic (GreedyAI in this case)
-    this._players[aiPlayerID] = new EasyAi(this, aiPlayerID);
-
-    // Automatically start the game if the maximum number of players is reached
+    // Start the game if the maximum number of players is reached
     if (this.state.players.length === this.MAX_PLAYERS) {
       this.startGame();
     }
   }
-*/
 
   /**
    * Starts the game if the minimum number of players is met.
