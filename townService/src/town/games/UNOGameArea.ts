@@ -5,6 +5,7 @@ import InvalidParametersError, {
 } from '../../lib/InvalidParametersError';
 import Player from '../../lib/Player';
 import {
+  CardColor,
   GameInstance,
   InteractableCommand,
   InteractableCommandReturnType,
@@ -48,7 +49,7 @@ export default class UNOGameArea extends GameArea<UNOGame> {
    * - StartGame (starts the game with the amount of players in it if more than 1).
    * - LeaveGame (leaves the game)
    * - JoinAI (attempts to have an AI player join the game)
-   * - ChangeColor (causes the top card color to change, situation when wildcard or plus 4 is used)
+   * - ChangeColor (causes the players wildcard color to change, situation when wildcard or plus 4 is used)
    *
    * If the command ended the game, updates the database with information
    * If the command is successful (does not throw an error), calls this._emitAreaChanged (necessary
@@ -63,7 +64,7 @@ export default class UNOGameArea extends GameArea<UNOGame> {
    * @throws InvalidParametersError if the command is not supported or is invalid. Invalid commands:
    *  - LeaveGame, GameMove, StartGame: No game in progress (GAME_NOT_IN_PROGRESS_MESSAGE),
    *        or gameID does not match the game in progress (GAME_ID_MISSMATCH_MESSAGE)
-   *  - Any command besides LeaveGame, 2 game moves, start game and JoinGame and JoinAI: INVALID_COMMAND_MESSAGE
+   *  - Any command besides LeaveGame, 2 game moves, start game and JoinGame and changeColor and JoinAI: INVALID_COMMAND_MESSAGE
    */
   public handleCommand<CommandType extends InteractableCommand>(
     command: CommandType,
@@ -125,7 +126,7 @@ export default class UNOGameArea extends GameArea<UNOGame> {
     if (command.type === 'JoinAI') {
       const game = this._game;
       this._validateGameInfo(game, command.gameID);
-      game?.joinAI(command.difficulty);
+      // game?.joinAI(command.difficulty);
       if (game) {
         this._stateUpdated(game.toModel());
         return { gameID: game.id } as InteractableCommandReturnType<CommandType>;
@@ -134,7 +135,7 @@ export default class UNOGameArea extends GameArea<UNOGame> {
     if (command.type === 'ColorChange') {
       const game = this._game;
       this._validateGameInfo(game, command.gameID);
-      game?.colorChange(command.color);
+      game?.colorChange(command.color as CardColor);
       if (game) {
         this._stateUpdated(game.toModel());
       }
