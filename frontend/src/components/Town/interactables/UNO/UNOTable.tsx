@@ -198,30 +198,30 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
   }, [gameAreaController, townAreaController]);
 
   if (ourPlayer === p1?.id) {
-    playerList[0] = p1;
-    if (p2) playerList[1] = p2;
-    if (p3) playerList[2] = p3;
-    if (p4) playerList[3] = p4;
+    playerList.push(p1);
+    if (p2) playerList.push(p2);
+    if (p3) playerList.push(p3);
+    if (p4) playerList.push(p4);
   } else if (ourPlayer === p2?.id) {
-    playerList[0] = p2;
-    if (p3) playerList[1] = p3;
-    if (p4) playerList[2] = p4;
-    if (p1) playerList[3] = p1;
+    playerList.push(p2);
+    if (p3) playerList.push(p3);
+    if (p4) playerList.push(p4);
+    if (p1) playerList.push(p1);
   } else if (ourPlayer === p3?.id) {
-    playerList[0] = p3;
-    if (p4) playerList[1] = p4;
-    if (p1) playerList[2] = p1;
-    if (p2) playerList[3] = p2;
+    playerList.push(p3);
+    if (p4) playerList.push(p4);
+    if (p1) playerList.push(p1);
+    if (p2) playerList.push(p2);
   } else if (ourPlayer === p4?.id) {
-    playerList[0] = p4;
-    if (p1) playerList[1] = p1;
-    if (p2) playerList[2] = p2;
-    if (p3) playerList[3] = p3;
+    playerList.push(p4);
+    if (p1) playerList.push(p1);
+    if (p2) playerList.push(p2);
+    if (p3) playerList.push(p3);
   } else {
-    if (p1) playerList[0] = p1;
-    if (p2) playerList[1] = p2;
-    if (p3) playerList[2] = p3;
-    if (p4) playerList[3] = p4;
+    if (p1) playerList.push(p1);
+    if (p2) playerList.push(p2);
+    if (p3) playerList.push(p3);
+    if (p4) playerList.push(p4);
   }
 
   const onDeckClick = async () => {
