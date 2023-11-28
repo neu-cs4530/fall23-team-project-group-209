@@ -16,6 +16,7 @@ import {
   TownEmitter,
   UNOPlayer,
   DrawCommand,
+  ChangeColorCommand,
 } from '../../types/CoveyTownSocket';
 import UNOGameArea from './UNOGameArea';
 import * as UNOGameModule from './UNOGame';
@@ -48,6 +49,8 @@ class TestingUNOGame extends Game<UNOGameState, UNOMove> {
   public drawCard(): void {}
 
   public startGame(): void {}
+
+  public colorChange(): void {}
 
   public endGame(winner?: string) {
     this.state = {
@@ -270,6 +273,64 @@ describe('UNOGameArea', () => {
         });
       });
     });
+    describe('[] when given a ChangeColor command', () => {
+      describe('when there is no game in progress', () => {
+        it('should throw an error', () => {
+          expect(() =>
+            gameArea.handleCommand(
+              { type: 'ColorChange', gameID: nanoid(), color: 'Red' },
+              player1,
+            ),
+          ).toThrowError(GAME_NOT_IN_PROGRESS_MESSAGE);
+          expect(interactableUpdateSpy).not.toHaveBeenCalled();
+        });
+      });
+      describe('when there is a game in progress', () => {
+        let gameID: GameInstanceID;
+        beforeEach(() => {
+          // start a full game of players
+          gameID = gameArea.handleCommand({ type: 'JoinGame' }, player1).gameID;
+          gameArea.handleCommand({ type: 'JoinGame' }, player2);
+          gameArea.handleCommand({ type: 'JoinGame' }, player3);
+          gameArea.handleCommand({ type: 'JoinGame' }, player4);
+          interactableUpdateSpy.mockClear();
+        });
+        it('should throw an error when the gameID does not match', () => {
+          expect(() =>
+            gameArea.handleCommand(
+              { type: 'ColorChange', gameID: nanoid(), color: 'Red' },
+              player1,
+            ),
+          ).toThrowError(GAME_ID_MISSMATCH_MESSAGE);
+        });
+        it('should dispatch the change color call and call emitter', () => {
+          const colorChangeCommand: ChangeColorCommand = {
+            type: 'ColorChange',
+            gameID,
+            color: 'Red',
+          };
+          const ccSpy = jest.spyOn(game, 'colorChange');
+          gameArea.handleCommand(colorChangeCommand, player1);
+          expect(ccSpy).toBeCalledWith('Red');
+          expect(interactableUpdateSpy).toHaveBeenCalledTimes(1);
+        });
+        it('should not call _emitAreaChanged if the game throws error', () => {
+          const colorChangeCommand: ChangeColorCommand = {
+            type: 'ColorChange',
+            gameID,
+            color: 'Red',
+          };
+          const ccSpy = jest.spyOn(game, 'colorChange').mockImplementationOnce(() => {
+            throw new Error('Test Error');
+          });
+          expect(() => gameArea.handleCommand(colorChangeCommand, player1)).toThrowError(
+            'Test Error',
+          );
+          expect(ccSpy).toHaveBeenCalledWith('Red');
+          expect(interactableUpdateSpy).not.toHaveBeenCalled();
+        });
+      });
+    });
     describe('[] when given a LeaveGame command', () => {
       describe('when there is no game in progress', () => {
         it('should throw an error', () => {
@@ -345,7 +406,7 @@ describe('UNOGameArea', () => {
           expect(interactableUpdateSpy).toHaveBeenCalledTimes(1);
           const startSpy = jest.spyOn(game, 'startGame');
           gameArea.handleCommand({ type: 'StartGame', gameID }, player1);
-          expect(startSpy).toHaveBeenCalledWith(player1);
+          expect(startSpy).toHaveBeenCalled();
           expect(interactableUpdateSpy).toHaveBeenCalledTimes(2);
         });
         it('should not emit Area changed if the game throws an error', () => {
@@ -360,7 +421,7 @@ describe('UNOGameArea', () => {
           expect(() =>
             gameArea.handleCommand({ type: 'StartGame', gameID: game.id }, player1),
           ).toThrowError('Test Error');
-          expect(startSpy).toHaveBeenCalledWith(player1);
+          expect(startSpy).toHaveBeenCalled();
           expect(interactableUpdateSpy).not.toHaveBeenCalled();
         });
       });
@@ -397,7 +458,7 @@ describe('UNOGameArea', () => {
           expect(interactableUpdateSpy).toHaveBeenCalledTimes(1);
           const joinAISpy = jest.spyOn(game, 'joinAI');
           gameArea.handleCommand({ type: 'JoinAI', gameID, difficulty: 'Easy' }, player1);
-          expect(joinAISpy).toHaveBeenCalledWith(player1);
+          expect(joinAISpy).toHaveBeenCalledWith('Easy');
           expect(interactableUpdateSpy).toHaveBeenCalledTimes(2);
         });
         it('should not emit area changed if there game throws error', () => {

@@ -14,10 +14,11 @@ import GameAreaController from './GameAreaController';
 import UNOAreaController, { GAME_ALREADY_IN_PROGRESS } from './UNOAreaController';
 import { mock } from 'jest-mock-extended';
 import assert from 'assert';
-import { NO_GAME_IN_PROGRESS_ERROR } from './TicTacToeAreaController';
+import { NO_GAME_IN_PROGRESS_ERROR, PLAYER_NOT_IN_GAME_ERROR } from './TicTacToeAreaController';
 //DETERMINE TESTING LABELS
 
 describe('[] UNOAreaController', () => {
+  // below is the set up for controller testing
   const ourPlayer = new PlayerController(nanoid(), 'player', {
     x: 0,
     y: 0,
@@ -156,7 +157,7 @@ describe('[] UNOAreaController', () => {
         const controller = UNOAreaControllerWithProp({
           status: 'IN_PROGRESS',
         });
-        expect(controller.status).toBe('In_PROGRESS');
+        expect(controller.status).toBe('IN_PROGRESS');
       });
       it('shouild return WAITING_TO_START if undefined game', () => {
         const controller = UNOAreaControllerWithProp({
@@ -172,7 +173,7 @@ describe('[] UNOAreaController', () => {
           status: 'IN_PROGRESS',
           players: [ourUNOPlayer],
         });
-        expect(controller.whoseTurn).toBe(ourUNOPlayer);
+        expect(controller.whoseTurn).toBe(ourPlayer);
       });
       it('should return undefined if the game is not in progress', () => {
         const ourUNOPlayer: UNOPlayer = { cards: [], id: ourPlayer.id };
@@ -454,11 +455,11 @@ describe('[] UNOAreaController', () => {
           { color: 'Red', rank: 2 },
         ]);
       });
-      it('should return undefined if the game isnt in progress', () => {
+      it('should return empty deck if the game isnt in progress', () => {
         const controller = UNOAreaControllerWithProp({
           status: 'WAITING_TO_START',
         });
-        expect(controller.drawDeck).toBe(undefined);
+        expect(controller.drawDeck).toEqual([]);
       });
       it('should return undefined if the game isnt defined', () => {
         const controller = UNOAreaControllerWithProp({
@@ -511,7 +512,7 @@ describe('[] UNOAreaController', () => {
           status: 'IN_PROGRESS',
           players: [otherUNOPlayer, anotherUNOPlayer],
         });
-        expect(controller.ourDeck).toThrowError();
+        expect(() => controller.ourDeck).toThrow();
       });
     });
     describe('othersCards', () => {
@@ -644,7 +645,37 @@ describe('[] UNOAreaController', () => {
         });
       });
     });
-    describe('JoinAI', () => {
+    describe('changeColor', () => {
+        it('should throw an error if the game is not in progress', async () => {
+            const controller = UNOAreaControllerWithProp({
+                status: 'WAITING_TO_START',
+            });
+            await expect(async () => controller.changeColor('Red')).rejects.toEqual(
+                new Error(NO_GAME_IN_PROGRESS_ERROR),
+            );
+        });
+        it('should call towncontroller.sendInteractableCommand', async () => {
+            const ourUNOPlayer: UNOPlayer = { cards: [{ color: 'Blue', rank: 1 }], id: ourPlayer.id };
+            const otherUNOPlayer = { cards: [], id: otherPlayers[0].id };
+            const controller = UNOAreaControllerWithProp({
+              status: 'IN_PROGRESS',
+              players: [ourUNOPlayer, otherUNOPlayer],
+        });
+        const instanceID = nanoid();
+        mockTownController.sendInteractableCommand.mockImplementationOnce(async () => {
+          return { gameID: instanceID };
+        });
+        await controller.joinGame();
+        mockTownController.sendInteractableCommand.mockReset();
+        await controller.changeColor('Red');
+        expect(mockTownController.sendInteractableCommand).toHaveBeenCalledWith(controller.id, {
+          type: 'ColorChange',
+          gameID: instanceID,
+          color: 'Red'
+        });
+      });
+    });
+    describe('joinAI', () => {
       it('should throw an erorr if the game is in progress', async () => {
         const controller = UNOAreaControllerWithProp({
           status: 'IN_PROGRESS',
@@ -743,7 +774,7 @@ describe('[] UNOAreaController', () => {
         const emitSpy = jest.spyOn(controller, 'emit');
         controller.updateFrom(model, otherPlayers.concat(ourPlayer));
         const deckChangedCall = emitSpy.mock.calls.find(call => call[0] === 'drawDeckChanged');
-        expect(deckChangedCall).not.tobeDefined();
+        expect(deckChangedCall).not.toBeDefined();
       });
       it('should emit a turnChanged event with false if it our turn', () => {
         const model = controller.toInteractableAreaModel();
@@ -929,10 +960,13 @@ describe('[] UNOAreaController', () => {
       });
     });
     it('should call super._updateFrom', () => {
+      const ourUNOPlayer: UNOPlayer = {cards: [], id: ourPlayer.id }
       //eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore - we are testing spying on a private method
       const spy = jest.spyOn(GameAreaController.prototype, '_updateFrom');
-      const controller = UNOAreaControllerWithProp({});
+      const controller = UNOAreaControllerWithProp({
+        players: [ourUNOPlayer],
+      });
       const model = controller.toInteractableAreaModel();
       controller.updateFrom(model, otherPlayers.concat(ourPlayer));
       expect(spy).toHaveBeenCalled();
