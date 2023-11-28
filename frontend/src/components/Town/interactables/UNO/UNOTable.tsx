@@ -253,50 +253,50 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
     }
   };
   function View(): JSX.Element {
-    if (p1 && p2 && p3 && p4) {
+    if (playerList.at(3)) {
       return (
         <VStack minH='full' minW='full' paddingY='30px' spacing='100px'>
           <RenderOpponent
-            username={playerList.at(2)?.userName ?? ''}
-            cardCount={othersCards?.get(p3.id) ?? 0}
-            theirTurn={playerList.at(2)?.id === whoseTurn?.id || false}
+            username={playerList[2].userName}
+            cardCount={othersCards?.get(playerList[2].id) ?? 0}
+            theirTurn={playerList[2].id === whoseTurn?.id || false}
           />
           <HStack paddingRight='70px'>
             <RenderOpponent
-              username={playerList.at(3)?.userName ?? ''}
-              cardCount={othersCards?.get(p4.id) ?? 0}
-              theirTurn={playerList.at(3)?.id === whoseTurn?.id || false}
+              username={playerList[3].userName}
+              cardCount={othersCards?.get(playerList[3].id) ?? 0}
+              theirTurn={playerList[3].id === whoseTurn?.id || false}
             />
             <RenderCard card={topCard} />
             <RenderDeck onClick={onDeckClick} />
             <RenderOpponent
-              username={playerList.at(1)?.userName ?? ''}
-              cardCount={othersCards?.get(p2.id) ?? 0}
-              theirTurn={playerList.at(1)?.userName === whoseTurn}
+              username={playerList[1].userName}
+              cardCount={othersCards?.get(playerList[1].id) ?? 0}
+              theirTurn={playerList[1].id === whoseTurn?.id || false}
             />
           </HStack>
           <RenderPlayer
-            username={playerList.at(0)?.userName ?? ''}
+            username={playerList[0].userName}
             cards={cards}
             onClick={onCardClick}
             isYourTurn={ourTurn}
           />
         </VStack>
       );
-    } else if (p1 && p2 && p3) {
+    } else if (playerList.at(2)) {
       return (
         <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
           <></>
           <HStack alignItems='stretch' paddingRight='100px'>
             <RenderOpponent
-              username={playerList.at(2)?.userName ?? ''}
-              cardCount={othersCards?.get(p3.id) ?? 0}
-              theirTurn={playerList.at(2)?.id === whoseTurn?.id || false}
+              username={playerList[2].userName}
+              cardCount={othersCards?.get(playerList[2].id) ?? 0}
+              theirTurn={playerList[2].id === whoseTurn?.id || false}
             />
             <RenderOpponent
-              username={playerList.at(1)?.userName ?? ''}
-              cardCount={othersCards?.get(p2.id) ?? 0}
-              theirTurn={playerList.at(1)?.id === whoseTurn?.id || false}
+              username={playerList[1].userName}
+              cardCount={othersCards?.get(playerList[1].id) ?? 0}
+              theirTurn={playerList[1].id === whoseTurn?.id || false}
             />
           </HStack>
           <HStack>
@@ -304,27 +304,27 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
             <RenderDeck onClick={onDeckClick} />
           </HStack>
           <RenderPlayer
-            username={playerList.at(0)?.userName ?? ''}
+            username={playerList[0].userName}
             cards={cards}
             onClick={onCardClick}
             isYourTurn={ourTurn}
           />
         </VStack>
       );
-    } else if (p1 && p2) {
+    } else if (playerList.at(1)) {
       return (
         <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
           <RenderOpponent
-            username={playerList.at(1)?.userName ?? ''}
-            cardCount={othersCards?.get(p2.id) ?? 0}
-            theirTurn={playerList.at(1)?.id === whoseTurn?.id || false}
+            username={playerList[1].userName}
+            cardCount={othersCards?.get(playerList[1].id) ?? 0}
+            theirTurn={playerList[1].id === whoseTurn?.id || false}
           />
           <HStack>
             <RenderCard card={topCard} />
             <RenderDeck onClick={onDeckClick} />
           </HStack>
           <RenderPlayer
-            username={playerList.at(0)?.userName ?? ''}
+            username={playerList[0].userName}
             cards={cards}
             onClick={onCardClick}
             isYourTurn={ourTurn}
@@ -360,8 +360,8 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
                   outlineColor='black'
                   bg='green'
                   onClick={async () => {
-                    //await gameAreaController.changeColor('Green');
-                    await gameAreaController.makeMove(card);
+                    await gameAreaController.changeColor('Green');
+                    await gameAreaController.makeMove({ rank: card.rank, color: 'Green' });
                     onClose();
                   }}
                 />
@@ -376,8 +376,8 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
                   outlineColor='black'
                   bg='blue'
                   onClick={async () => {
-                    //await gameAreaController.changeColor('Blue');
-                    await gameAreaController.makeMove(card);
+                    await gameAreaController.changeColor('Blue');
+                    await gameAreaController.makeMove({ rank: card.rank, color: 'Blue' });
                     onClose();
                   }}
                 />
@@ -392,8 +392,8 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
                   outlineColor='black'
                   bg='yellow'
                   onClick={async () => {
-                    //await gameAreaController.changeColor('Yellow');
-                    await gameAreaController.makeMove(card);
+                    await gameAreaController.changeColor('Yellow');
+                    await gameAreaController.makeMove({ rank: card.rank, color: 'Yellow' });
                     onClose();
                   }}
                 />
@@ -408,8 +408,8 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
                   outlineColor='black'
                   bg='red'
                   onClick={async () => {
-                    //await gameAreaController.changeColor('Red');
-                    await gameAreaController.makeMove(card);
+                    await gameAreaController.changeColor('Red');
+                    await gameAreaController.makeMove({ rank: card.rank, color: 'Red' });
                     onClose();
                   }}
                 />
