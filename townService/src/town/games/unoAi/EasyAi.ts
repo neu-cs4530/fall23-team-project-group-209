@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-cycle
 import UNOGame from '../UNOGame';
 
-import { Card, GameMove, UNOMove } from '../../../types/CoveyTownSocket';
+import { GameMove, UNOMove } from '../../../types/CoveyTownSocket';
 
 class EasyAIStrategy {
   private _game: UNOGame;
@@ -31,9 +31,6 @@ class EasyAIStrategy {
       this._game._validMove({ player: this._aiPlayerID, card }),
     );
     */
-
-    console.log('AI Move');
-    console.log(playableCard);
 
     if (!playableCard) {
       this._game.drawCard(this._aiPlayerID);
