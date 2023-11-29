@@ -150,6 +150,7 @@ export interface GameInstance<T extends GameState> {
  * @see GameInstance
  */
 export interface GameArea<T extends GameState> extends Interactable {
+  database: Promise<PlayerData[]> | undefined;
   game: GameInstance<T> | undefined;
   history: GameResult[];
 }
@@ -195,23 +196,35 @@ export interface GameMoveCommand<MoveType> {
   move: MoveType;
 }
 
+/**
+ * command for starting a game, in this case UNOGame
+ */
 export interface StartGameCommand {
   type: 'StartGame';
   gameID: GameInstanceID;
 }
 
+/**
+ * command for drawing card in UNOGame
+ */
 export interface DrawCommand {
   type: 'DrawCard';
   gameID: GameInstanceID;
   id: PlayerID;
 }
 
+/**
+ * command for joining AI player, in this case UNOGame
+ */
 export interface JoinAICommand {
   type: 'JoinAI';
   gameID: GameInstanceID;
   difficulty: string;
 }
 
+/**
+ * comamnd for changing color, in this case UNOGame
+ */
 export interface ChangeColorCommand {
   type: 'ColorChange';
   gameID: GameInstanceID;
@@ -328,6 +341,15 @@ export interface UNOMove {
 export interface UNOPickUp {
   player: PlayerID;
 }
+
+/**
+ * the data for a player that is stored in our database. 
+ */
+export type PlayerData = {
+  id: string;
+  wins: number;
+  loss: number;
+};
 
 
 /**

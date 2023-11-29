@@ -1,5 +1,5 @@
-import { deepEqual } from 'assert';
-import { Card, GameArea, GameStatus, UNOGameState, UNOPlayer } from '../../types/CoveyTownSocket';
+
+import { Card, GameArea, GameStatus, PlayerData, UNOGameState, UNOPlayer } from '../../types/CoveyTownSocket';
 import PlayerController from '../PlayerController';
 import GameAreaController, { GameEventTypes } from './GameAreaController';
 import { PLAYER_NOT_IN_GAME_ERROR } from './TicTacToeAreaController';
@@ -14,6 +14,7 @@ export type UNOEvents = GameEventTypes & {
   topCardChanged: (topCard: Card | undefined) => void;
   directionChanged: (direction: string | undefined) => void; // do we need this
   otherCardsChanged: (others: Map<string, number> | undefined) => void;
+  leaderboardFetched: (board: PlayerData[] | undefined) => void;
 };
 
 /**
@@ -372,6 +373,11 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
         card: card,
       },
     });
+  }
+
+  public async leaderBoard() {
+    const board = await this._model.database;
+    this.emit('leaderboardFetched', board);
   }
 
   /**

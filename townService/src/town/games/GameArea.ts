@@ -4,6 +4,7 @@ import {
   GameResult,
   GameState,
   InteractableType,
+  PlayerData,
 } from '../../types/CoveyTownSocket';
 import InteractableArea from '../InteractableArea';
 import Game from './Game';
@@ -15,6 +16,9 @@ import Game from './Game';
 export default abstract class GameArea<
   GameType extends Game<GameState, unknown>,
 > extends InteractableArea {
+  // this is added to the gameArea for UNOGameArea
+  protected _database?: Promise<PlayerData[]>;
+
   protected _game?: GameType;
 
   protected _history: GameResult[] = [];
@@ -27,6 +31,13 @@ export default abstract class GameArea<
     return this._history;
   }
 
+  /**
+   * Returns promise for list of all data from players in database
+   */
+  public get database(): Promise<PlayerData[]> | undefined {
+    return this._database;
+  }
+
   public toModel(): GameAreaModel<GameType['state']> {
     return {
       id: this.id,
@@ -34,6 +45,7 @@ export default abstract class GameArea<
       history: this._history,
       occupants: this.occupantsByID,
       type: this.getType(),
+      database: this._database,
     };
   }
 
