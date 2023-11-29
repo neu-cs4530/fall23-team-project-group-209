@@ -646,7 +646,6 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
         winner: this.state.players[0].id,
       };
     }
-    
 
     this.state = {
       ...this.state,
