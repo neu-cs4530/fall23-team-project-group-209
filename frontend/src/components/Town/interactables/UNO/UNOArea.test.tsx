@@ -387,7 +387,7 @@ describe('UNOAreaTests', () => {
       addListenerSpy.mockClear();
 
       renderUNOArea();
-      expect(addListenerSpy).toBeCalledTimes(4);
+      expect(addListenerSpy).toBeCalledTimes(5);
       expect(addListenerSpy).toBeCalledWith('gameUpdated', expect.any(Function));
       expect(addListenerSpy).toBeCalledWith('gameEnd', expect.any(Function));
       expect(addListenerSpy).toBeCalledWith('turnChanged', expect.any(Function));
@@ -401,7 +401,7 @@ describe('UNOAreaTests', () => {
       const renderData = renderUNOArea();
       renderData.unmount();
 
-      expect(removeSpy).toBeCalledTimes(4);
+      expect(removeSpy).toBeCalledTimes(5);
       expect(removeSpy).toBeCalledWith('gameUpdated', expect.any(Function));
       expect(removeSpy).toBeCalledWith('gameEnd', expect.any(Function));
       expect(removeSpy).toBeCalledWith('turnChanged', expect.any(Function));
@@ -413,7 +413,7 @@ describe('UNOAreaTests', () => {
       addListenerSpy.mockClear();
 
       const renderData = renderUNOArea();
-      expect(addListenerSpy).toBeCalledTimes(4);
+      expect(addListenerSpy).toBeCalledTimes(5);
 
       renderData.rerender(
         <ChakraProvider>
@@ -423,7 +423,7 @@ describe('UNOAreaTests', () => {
         </ChakraProvider>,
       );
 
-      expect(addListenerSpy).toBeCalledTimes(4);
+      expect(addListenerSpy).toBeCalledTimes(5);
     });
   });
 });
