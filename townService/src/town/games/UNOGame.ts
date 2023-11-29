@@ -20,6 +20,8 @@ import {
 import Game from './Game';
 // eslint-disable-next-line import/no-cycle
 import EasyAIStrategy from './unoAi/EasyAi';
+// eslint-disable-next-line import/no-cycle
+import MediumAIStrategy from './unoAi/MediumAi';
 
 /**
  * @see README.md (and scroll to the section added at the bottom talking about rule changes.)
@@ -48,7 +50,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
   // Maximum number of players allowed in the game.
   MAX_PLAYERS = 4;
 
-  private _aiStrategies: { [playerId: string]: EasyAIStrategy } = {};
+  private _aiStrategies: { [playerId: string]: EasyAIStrategy | MediumAIStrategy } = {};
 
   // Minimum number of players required to start the game
   MIN_PLAYERS = 2;
@@ -503,7 +505,6 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       }
       this.state.topCard = placeCard.move.card;
     }
-
     this._updateCurrentPlayerIndexAndDir(placeCard.move, this.state.players);
     this._updateDeckStack(placeCard.move.card);
 
@@ -604,13 +605,14 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       // Update the found player to be an AI player
       nonAIPlayer.isAI = true;
 
-      // Initialize AI logic for this player
-      // Create a new EasyAIStrategy instance for this AI player
-
-      this._aiStrategies[nonAIPlayer.id] = new EasyAIStrategy(this, nonAIPlayer.id);
-
-      // Optionally, update the game state to reflect the change
-      // this._stateUpdated(this.state);
+      // Initialize the appropriate AI logic based on the difficulty
+      if (difficulty === 'Easy') {
+        this._aiStrategies[nonAIPlayer.id] = new EasyAIStrategy(this, nonAIPlayer.id);
+      } else if (difficulty === 'Medium') {
+        this._aiStrategies[nonAIPlayer.id] = new MediumAIStrategy(this, nonAIPlayer.id);
+      } else {
+        throw new InvalidParametersError('INVALID_DIFFICULTY');
+      }
     } else {
       // Handle the case where all players are already AI or no players are in the game
       throw new InvalidParametersError('NO_HUMAN_PLAYER_TO_REPLACE');
