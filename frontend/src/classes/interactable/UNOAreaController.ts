@@ -1,4 +1,11 @@
-import { Card, GameArea, GameStatus, PlayerData, UNOGameState, UNOPlayer } from '../../types/CoveyTownSocket';
+import {
+  Card,
+  GameArea,
+  GameStatus,
+  PlayerData,
+  UNOGameState,
+  UNOPlayer,
+} from '../../types/CoveyTownSocket';
 import PlayerController from '../PlayerController';
 import GameAreaController, { GameEventTypes } from './GameAreaController';
 import { PLAYER_NOT_IN_GAME_ERROR } from './TicTacToeAreaController';
@@ -376,19 +383,16 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
 
   /**
    * this function sends a command to the townController to update the leaderboard
-   * and then emits to the view the board as a list of PlayerData. 
+   * and then emits to the view the board as a list of PlayerData.
    */
   public async leaderBoard() {
-    const instanceID = this._instanceID;
-    if (!instanceID) {
-      throw new Error(NO_GAME_IN_PROGRESS_ERROR);
-    }
+    const instanceID = this._instanceID ?? '';
     await this._townController.sendInteractableCommand(this.id, {
       type: 'Leaderboard',
       gameID: instanceID,
     });
     const board = this._model.database;
-    this.emit('leaderboardFetched', board)
+    this.emit('leaderboardFetched', board);
   }
 
   /**

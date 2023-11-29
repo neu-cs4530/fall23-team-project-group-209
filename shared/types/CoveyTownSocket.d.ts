@@ -1,4 +1,3 @@
-
 export type TownJoinResponse = {
   /** Unique ID that represents this player * */
   userID: string;
