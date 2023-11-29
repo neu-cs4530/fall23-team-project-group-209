@@ -545,12 +545,10 @@ describe('UNOGame', () => {
   describe('joinAI', () => {
     let joinAIGame: UNOGame;
     let humanPlayer1: Player;
-    let humanPlayer2: Player;
 
     beforeEach(() => {
       joinAIGame = new UNOGame();
       humanPlayer1 = createPlayerForTesting();
-      humanPlayer2 = createPlayerForTesting();
       joinAIGame._join(humanPlayer1);
     });
 
@@ -572,28 +570,45 @@ describe('UNOGame', () => {
     });
   });
   describe('_validMove', () => {
-    // let game;
-    let move;
+    let validMoveGame: UNOGame;
+    let p1: Player;
+    let p2: Player;
 
     beforeEach(() => {
-      game = new UNOGame();
-      // Initialize game with players and set the game to 'IN_PROGRESS'
-      // Define a move
+      validMoveGame = new UNOGame();
+      p1 = createPlayerForTesting();
+      p2 = createPlayerForTesting();
+      validMoveGame._join(p1);
+      validMoveGame._join(p2);
+      validMoveGame.startGame();
     });
 
     it("should throw an error if it is not the player's turn", () => {
-      // Set up a move for a player whose turn is not current
-      // Call _validMove and expect an error
+      const move: UNOMove = {
+        player: p2.id,
+        card: { color: 'Red', rank: 5 },
+      };
+      expect(() => validMoveGame._validMove(move)).toThrowError(NOT_PLAYER_TURN);
     });
 
     it('should return true if the move is valid', () => {
-      // Set up a valid move
-      // Call _validMove and expect it to return true
+      const move: UNOMove = {
+        player: p1.id,
+        card: { color: 'Blue', rank: 3 },
+      };
+      expect(validMoveGame._validMove(move)).toBe(true);
+    });
+    it('should return true if the move is not valid', () => {
+      // Typescript actually checks for these type errors and enforces so this makes my life easier.
     });
 
     it('should throw an error if the player making the move is not the current player', () => {
-      // Set up a move with a player ID different from the current player's ID
-      // Call _validMove and expect an error
+      const move: UNOMove = {
+        player: p2.id,
+        card: { color: 'Green', rank: 2 },
+      };
+      validMoveGame.state.currentPlayerIndex = 0;
+      expect(() => validMoveGame._validMove(move)).toThrowError(NOT_PLAYER_TURN);
     });
   });
 });
