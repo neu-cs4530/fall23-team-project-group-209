@@ -26,7 +26,7 @@ const actionCardRanks: { [key in UNOSuit]?: number } = {
 };
 
 /**
- * MediumAIStrategy class provides a medium-level artificial intelligence strategy for playing UNO.
+ * MediumAIStrategy class provides a medium-level artificial intelligence strategy for playing UNO game.
  */
 class MediumAIStrategy {
   private _game: UNOGame;

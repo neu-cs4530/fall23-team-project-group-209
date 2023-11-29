@@ -2,7 +2,7 @@ import { createPlayerForTesting } from '../../../TestUtils';
 import Player from '../../../lib/Player';
 import { UNOMove } from '../../../types/CoveyTownSocket';
 import UNOGame from '../UNOGame';
-import MediumAIStrategy from './EasyAi';
+import MediumAIStrategy from './MediumAi';
 
 describe('MediumAIStrategy', () => {
   let unoGame: UNOGame;
