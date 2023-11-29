@@ -2,6 +2,7 @@ import {
   GameResult,
   GameStatus,
   InteractableID,
+  PlayerData,
 } from '../../../../../../shared/types/CoveyTownSocket';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useInteractableAreaController } from '../../../../classes/TownController';
@@ -11,6 +12,7 @@ import {
   Container,
   Divider,
   GridItem,
+  HStack,
   List,
   ListItem,
   Modal,
@@ -26,6 +28,27 @@ import {
 import useTownController from '../../../../hooks/useTownController';
 import GameAreaInteractable from '../GameArea';
 import UNOTable from './UNOTable';
+import UNOLeaderboard from './UNOLeaderboard';
+
+/**
+ * Holds the rules for the UNO game in a closable modal.
+ * @param param0
+ * @returns
+ */
+function RuleModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }): JSX.Element {
+  return isOpen ? (
+    <Modal aria-label='rules' size='md' isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent alignItems='center' paddingY='30px'>
+        <ModalCloseButton />
+        <b>{'UNO Rules'}</b>
+        <span>{'Add more text here...'}</span>
+      </ModalContent>
+    </Modal>
+  ) : (
+    <></>
+  );
+}
 
 /**
  * Overall UNO frontend area that allows for the player to join a game,
@@ -39,8 +62,11 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
   // states to hold UNOAreaValues
   const [isJoining, setIsJoining] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isLBModalOpen, setIsLBModalOpen] = useState(false);
+  const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
   // states to hold game values from controller
+  const [lb, setLb] = useState<PlayerData[] | undefined>(undefined);
   const [, setHistory] = useState<GameResult[]>(gameAreaController.history);
   const [status, setGameStatus] = useState<GameStatus>(gameAreaController.status);
   //const [observers, setObservers] = useState<PlayerController[]>(gameAreaController.observers);
@@ -80,22 +106,26 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
     const directionChanged = () => {
       setDirection(gameAreaController.playerDirection);
     };
+    const updateLeaderboard = (board: PlayerData[] | undefined) => {
+      setLb(board);
+    };
     //listeners from controller
     gameAreaController.addListener('gameUpdated', updateGame);
-    gameAreaController.addListener('gameEnded', endGame);
+    gameAreaController.addListener('gameEnd', endGame);
     gameAreaController.addListener('turnChanged', turnChanged);
     gameAreaController.addListener('directionChanged', directionChanged);
-    //TODO
+    gameAreaController.addListener('leaderboardFetched', updateLeaderboard);
     return () => {
       gameAreaController.removeListener('gameUpdated', updateGame);
-      gameAreaController.removeListener('gameEnded', endGame);
+      gameAreaController.removeListener('gameEnd', endGame);
       gameAreaController.removeListener('turnChanged', turnChanged);
       gameAreaController.removeListener('directionChanged', directionChanged);
+      gameAreaController.removeListener('leaderboardFetched', updateLeaderboard);
     };
   }, [gameAreaController, townController]);
 
   const joinGameButton =
-    inGame || status === 'IN_PROGRESS' ? (
+    (inGame && status === 'WAITING_TO_START') || status === 'IN_PROGRESS' ? (
       <></>
     ) : (
       <Button
@@ -147,7 +177,7 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
       <Button
         onClick={async () => {
           try {
-            setIsModalOpen(true);
+            setIsAIModalOpen(true);
           } catch (err) {
             toast({
               title: 'Error adding AI',
@@ -163,7 +193,7 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
     );
 
   function AIModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }): JSX.Element {
-    const [mode, setMode] = useState('easy');
+    const [mode, setMode] = useState('Easy');
     const onClick = async () => {
       setIsJoining(true);
       try {
@@ -184,7 +214,7 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
       setIsJoining(false);
     };
     return isOpen ? (
-      <Modal size='md' isOpen={isOpen} onClose={onClose}>
+      <Modal aria-label='leaderboard' size='md' isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent alignItems='center' paddingY='30px'>
           <ModalCloseButton />
@@ -195,9 +225,9 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
               onChange={e => {
                 setMode(e.target.value);
               }}>
-              <option value='easy'>Easy</option>
-              <option value='med'>Medium</option>
-              <option value='hard'>Hard</option>
+              <option value='Easy'>Easy</option>
+              <option value='Med'>Medium</option>
+              <option value='Hard'>Hard</option>
             </Select>
             <Button
               size='md'
@@ -229,7 +259,7 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
           </List>
         </GridItem>
         <GridItem>
-          <VStack>
+          <VStack paddingTop='5px'>
             {addAIButton}
             {joinGameButton}
             {startGameButton}
@@ -248,27 +278,78 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
     );
 
   const statusText = () => {
-    const winnerText = winner ? `The winner is ${winner}!` : 'There is no winner.';
+    const winnerText = winner ? `The winner is ${winner.userName}!` : 'There is no winner.';
     switch (status) {
       case 'WAITING_TO_START':
-        return <span>{'Game is waiting to start.'}</span>;
+        return <span aria-label='status'>{'Game is waiting to start.'}</span>;
       case 'IN_PROGRESS':
         return (
-          <span>{`Game is in progress. It is ${whoseTurn?.userName}'s turn. The game direction is ${direction}.`}</span>
+          <span aria-label='status'>{`Game is in progress. It is ${whoseTurn?.userName}'s turn. The game direction is ${direction}.`}</span>
         );
       case 'OVER':
-        return <span>{`Game is over! ${winnerText}`}</span>;
+        return <span aria-label='status'>{`Game is over! ${winnerText}`}</span>;
       default:
         <></>;
     }
   };
 
+  function LeaderboardModal({
+    isOpen,
+    onClose,
+  }: {
+    isOpen: boolean;
+    onClose: () => void;
+  }): JSX.Element {
+    return isOpen ? (
+      <Modal aria-label='leaderboard' size='md' isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent alignItems='center' paddingY='30px'>
+          <ModalCloseButton />
+          <b>{'UNO Leaderboard'}</b>
+          <UNOLeaderboard
+            board={lb
+              ?.sort((a: PlayerData, b: PlayerData) => {
+                return b.wins - a.wins;
+              })
+              .slice(0, 10)}
+          />
+        </ModalContent>
+      </Modal>
+    ) : (
+      <></>
+    );
+  }
+
+  const lbModalButton = (
+    <Button
+      paddingX='20px'
+      marginX='20px'
+      onClick={async () => {
+        await gameAreaController.leaderBoard();
+        setIsLBModalOpen(true);
+      }}>
+      Leaderboard
+    </Button>
+  );
+  const ruleModalButton = (
+    <Button paddingX='20px' marginX='20px' onClick={() => setIsRuleModalOpen(true)}>
+      Rules
+    </Button>
+  );
+
   // if waiting to start, return the join game screen.
-  // otherwise, render the uno table.
+  // otherwise, render the UNO table.
   return (
-    <Container minW='full' paddingX={0}>
-      <AIModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}></AIModal>
+    <Container minW='full' paddingX='0px'>
+      <AIModal isOpen={isAIModalOpen} onClose={() => setIsAIModalOpen(false)} />
+      <LeaderboardModal isOpen={isLBModalOpen} onClose={() => setIsLBModalOpen(false)} />
+      <RuleModal isOpen={isRuleModalOpen} onClose={() => setIsRuleModalOpen(false)} />
       <VStack minW='max' bgColor='white' align='center' paddingBottom='5'>
+        <HStack>
+          {lbModalButton}
+          {ruleModalButton}
+        </HStack>
+        <Divider />
         {listPlayers}
         <Divider />
         {statusText()}

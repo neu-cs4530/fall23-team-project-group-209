@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import admin from 'firebase-admin';
 import { cert } from 'firebase-admin/app';
 import InvalidParametersError, {
@@ -20,8 +19,9 @@ import {
 // eslint-disable-next-line import/no-cycle
 import GameArea from './GameArea';
 import UNOGame from './UNOGame';
-// below is the stuff to set up the database, which will be updated in this class
-import serviceAccount from './leaderboard-Service-Keys.json';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import serviceAccount from './leaderboard-Service-Keys.json' assert { type: 'json' };
 
 admin.initializeApp({
   credential: cert(serviceAccount as admin.ServiceAccount),
@@ -214,7 +214,7 @@ export default class UNOGameArea extends GameArea<UNOGame> {
     if (command.type === 'JoinAI') {
       const game = this._game;
       this._validateGameInfo(game, command.gameID);
-      // game?.joinAI(command.difficulty);
+      game?.joinAI(command.difficulty);
       if (game) {
         this._stateUpdated(game.toModel());
         return { gameID: game.id } as InteractableCommandReturnType<CommandType>;
