@@ -1,7 +1,10 @@
 import InvalidParametersError, {
+  CARD_NOT_FOUND_IN_HAND,
   GAME_FULL_MESSAGE,
   GAME_NOT_IN_PROGRESS_MESSAGE,
+  NOT_PLAYER_TURN,
   PLAYER_ALREADY_IN_GAME_MESSAGE,
+  PLAYER_NOT_FOUND_MESSAGE,
   PLAYER_NOT_IN_GAME_MESSAGE,
 } from '../../lib/InvalidParametersError';
 import Player from '../../lib/Player';
@@ -197,7 +200,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
 
   public _validMove(move: UNOMove): boolean {
     if (!this._isPlayersTurn(move.player)) {
-      throw new InvalidParametersError('NOT_PLAYER_TURN');
+      throw new InvalidParametersError(NOT_PLAYER_TURN);
     }
     const playerIdMakingMove = move.player;
 
@@ -208,7 +211,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     if (playerIdMakingMove === currentPlayerId) {
       return true;
     }
-    throw new InvalidParametersError('NOT_PLAYER_TURN');
+    throw new InvalidParametersError(NOT_PLAYER_TURN);
   }
 
   /**
@@ -416,7 +419,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     );
 
     if (cardIndex === -1) {
-      throw new Error('Card not found in player hand');
+      throw new Error(CARD_NOT_FOUND_IN_HAND);
     }
 
     player.cards.splice(cardIndex, 1);
@@ -451,7 +454,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       player.cards.push(card);
     } else {
       // Handle the case where the player is not found or no card is drawn
-      throw new Error('Player not found or no card to draw');
+      throw new Error(PLAYER_NOT_FOUND_MESSAGE);
     }
   }
 
@@ -678,6 +681,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
         winner: this.state.players[0].id,
       };
     }
+    
 
     this.state = {
       ...this.state,
