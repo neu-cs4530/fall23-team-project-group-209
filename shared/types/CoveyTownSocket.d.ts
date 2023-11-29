@@ -150,7 +150,7 @@ export interface GameInstance<T extends GameState> {
  * @see GameInstance
  */
 export interface GameArea<T extends GameState> extends Interactable {
-  database: Promise<PlayerData[]> | undefined;
+  database: PlayerData[] | undefined;
   game: GameInstance<T> | undefined;
   history: GameResult[];
 }
@@ -178,7 +178,8 @@ interface InteractableCommandBase {
 }
 
 export type InteractableCommand =  ViewingAreaUpdateCommand | JoinGameCommand | GameMoveCommand<TicTacToeMove> 
-| LeaveGameCommand | StartGameCommand | GameMoveCommand<UNOMove> | DrawCommand | JoinAICommand | ChangeColorCommand;
+| LeaveGameCommand | StartGameCommand | GameMoveCommand<UNOMove> | DrawCommand | JoinAICommand | 
+LeaderboardCommand | ChangeColorCommand;
 export interface ViewingAreaUpdateCommand  {
   type: 'ViewingAreaUpdate';
   update: ViewingArea;
@@ -194,6 +195,14 @@ export interface GameMoveCommand<MoveType> {
   type: 'GameMove';
   gameID: GameInstanceID;
   move: MoveType;
+}
+
+/**
+ * command for setting the leaderboard.
+ */
+export interface LeaderboardCommand {
+  type: 'Leaderboard';
+  gameID: GameInstanceID;
 }
 
 /**
@@ -239,6 +248,7 @@ export type InteractableCommandReturnType<CommandType extends InteractableComman
   CommandType extends DrawCommand ? undefined :
   CommandType extends LeaveGameCommand ? undefined :
   CommandType extends StartGameCommand ? { gameID: string}:
+  CommandType extends LeaderboardCommand ? undefined :
   CommandType extends ChangeColorCommand ? undefined : 
   never;
 
