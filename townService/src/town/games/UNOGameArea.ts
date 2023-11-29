@@ -41,7 +41,6 @@ export default class UNOGameArea extends GameArea<UNOGame> {
     return 'UNOArea';
   }
 
-
   /**
    * Informs all listeners that the state of the game has been changed by emitting,
    * also it checks to see if the new state of the game is over, and updates the database
@@ -91,7 +90,6 @@ export default class UNOGameArea extends GameArea<UNOGame> {
             await playerRef.doc(loser).set(loserData);
           }
         });
-        
       } else {
         // if there is no winner, statistics do not change for anyone
       }
@@ -233,9 +231,9 @@ export default class UNOGameArea extends GameArea<UNOGame> {
       const game = this._game;
       this._validateGameInfo(game, command.gameID);
       if (game) {
-        const lb = await this._createLeaderboardArray;
-        this.database = 
+        this._createLeaderboardArray();
       }
+      return undefined as InteractableCommandReturnType<CommandType>;
     }
     throw new InvalidParametersError(INVALID_COMMAND_MESSAGE);
   }
