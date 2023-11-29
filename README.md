@@ -49,6 +49,11 @@ automatically connect to the town with the friendly name "DEBUG_TOWN" (creating 
 In the `frontend` directory, run `npm run dev` (again, you'll need to run `npm install` the very first time). After several moments (or minutes, depending on the speed of your machine), a browser will open with the frontend running locally.
 The frontend will automatically re-compile and reload in your browser if you change any files in the `frontend/src` directory.
 
+### Adding Ai Bots
+
+To add Ai Players to your UNO game you will need to open new tabs and join as new players, then after you join you can select a difficulty for the AI. The AI bot will always take over the last joined player and play according to their difficulties.
+
+
 ### UNO Game Rules
 
 The UNO game that we are implementing follows some the official game for most of it's rules except for some exceptions. 
