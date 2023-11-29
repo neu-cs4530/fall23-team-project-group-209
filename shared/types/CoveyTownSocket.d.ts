@@ -149,6 +149,7 @@ export interface GameInstance<T extends GameState> {
  * @see GameInstance
  */
 export interface GameArea<T extends GameState> extends Interactable {
+  database: PlayerData[] | undefined;
   game: GameInstance<T> | undefined;
   history: GameResult[];
 }
@@ -176,7 +177,8 @@ interface InteractableCommandBase {
 }
 
 export type InteractableCommand =  ViewingAreaUpdateCommand | JoinGameCommand | GameMoveCommand<TicTacToeMove> 
-| LeaveGameCommand | StartGameCommand | GameMoveCommand<UNOMove> | DrawCommand | JoinAICommand | ChangeColorCommand;
+| LeaveGameCommand | StartGameCommand | GameMoveCommand<UNOMove> | DrawCommand | JoinAICommand | 
+LeaderboardCommand | ChangeColorCommand;
 export interface ViewingAreaUpdateCommand  {
   type: 'ViewingAreaUpdate';
   update: ViewingArea;
@@ -194,23 +196,43 @@ export interface GameMoveCommand<MoveType> {
   move: MoveType;
 }
 
+/**
+ * command for setting the leaderboard.
+ */
+export interface LeaderboardCommand {
+  type: 'Leaderboard';
+  gameID: GameInstanceID;
+}
+
+/**
+ * command for starting a game, in this case UNOGame
+ */
 export interface StartGameCommand {
   type: 'StartGame';
   gameID: GameInstanceID;
 }
 
+/**
+ * command for drawing card in UNOGame
+ */
 export interface DrawCommand {
   type: 'DrawCard';
   gameID: GameInstanceID;
   id: PlayerID;
 }
 
+/**
+ * command for joining AI player, in this case UNOGame
+ */
 export interface JoinAICommand {
   type: 'JoinAI';
   gameID: GameInstanceID;
   difficulty: string;
 }
 
+/**
+ * comamnd for changing color, in this case UNOGame
+ */
 export interface ChangeColorCommand {
   type: 'ColorChange';
   gameID: GameInstanceID;
@@ -225,6 +247,7 @@ export type InteractableCommandReturnType<CommandType extends InteractableComman
   CommandType extends DrawCommand ? undefined :
   CommandType extends LeaveGameCommand ? undefined :
   CommandType extends StartGameCommand ? { gameID: string}:
+  CommandType extends LeaderboardCommand ? undefined :
   CommandType extends ChangeColorCommand ? undefined : 
   never;
 
@@ -328,6 +351,15 @@ export interface UNOMove {
 export interface UNOPickUp {
   player: PlayerID;
 }
+
+/**
+ * the data for a player that is stored in our database. 
+ */
+export type PlayerData = {
+  id: string;
+  wins: number;
+  loss: number;
+};
 
 
 /**

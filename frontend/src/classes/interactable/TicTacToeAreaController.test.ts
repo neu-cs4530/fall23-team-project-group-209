@@ -69,6 +69,7 @@ describe('[T1] TicTacToeAreaController', () => {
         occupants: players,
         history: history || [],
         type: 'TicTacToeArea',
+        database: undefined,
         game: undefinedGame
           ? undefined
           : {

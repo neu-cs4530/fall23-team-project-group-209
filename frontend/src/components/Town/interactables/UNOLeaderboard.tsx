@@ -13,5 +13,6 @@ import React from 'react';
  */
 export default function UNOLeaderboard(): JSX.Element {
   //not sure what the parameter is yet to read from database?
+  //the backend function should fetch the data from the cloudstore
   return <></>;
 }

@@ -1,3 +1,6 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+import admin from 'firebase-admin';
+import { cert } from 'firebase-admin/app';
 import InvalidParametersError, {
   GAME_ID_MISSMATCH_MESSAGE,
   GAME_NOT_IN_PROGRESS_MESSAGE,
@@ -10,11 +13,24 @@ import {
   InteractableCommand,
   InteractableCommandReturnType,
   InteractableType,
+  PlayerData,
   UNOGameState,
   UNOMove,
 } from '../../types/CoveyTownSocket';
+// eslint-disable-next-line import/no-cycle
 import GameArea from './GameArea';
 import UNOGame from './UNOGame';
+// below is the stuff to set up the database, which will be updated in this class
+import serviceAccount from './leaderboard-Service-Keys.json';
+
+admin.initializeApp({
+  credential: cert(serviceAccount as admin.ServiceAccount),
+  databaseURL: 'https://leaderboard-4cc7e-default-rtdb.firebaseio.com',
+});
+
+const db = admin.firestore();
+
+const playerRef = db.collection('Players');
 
 /**
  * A game Area that hosts an UNO game. The user sends commands to the model from the view,
@@ -24,20 +40,90 @@ export default class UNOGameArea extends GameArea<UNOGame> {
   protected getType(): InteractableType {
     return 'UNOArea';
   }
-  // have firebase class be property
 
   /**
    * Informs all listeners that the state of the game has been changed by emitting,
-   * also it checks to see if the new state of the game is over, and updates the history
+   * also it checks to see if the new state of the game is over, and updates the database
+   * if there is a winner
    * @param updatedState the updated state
    */
-  private _stateUpdated(updatedState: GameInstance<UNOGameState>) {
+  private async _stateUpdated(updatedState: GameInstance<UNOGameState>) {
     if (updatedState.state.status === 'OVER') {
-      // determine how we want to handle the history situation
-      // will update database in here, FUTURE
-      // firebase is seperate class with methods, call method using object of the class
+      if (updatedState.state.winner) {
+        // there is a winner, updated winners wins, update losers losses
+        const winnerID = updatedState.state.winner;
+        const winnerRef = playerRef.doc(winnerID);
+        const doc = await winnerRef.get();
+        const doesExist = doc.exists;
+        if (doesExist) {
+          // want to increment the wins for this player
+          await winnerRef.update({
+            wins: FirebaseFirestore.FieldValue.increment(1),
+          });
+        } else {
+          // winner player doesnt exist in firebase, we need to add it
+          const winnerData = {
+            id: winnerID,
+            wins: 1,
+            loss: 0,
+          };
+          await playerRef.doc(winnerID).set(winnerData);
+        }
+        // now we need to incremenent losses for all other players
+        const losers = this._determineLosersIDS(updatedState);
+        losers.forEach(async loser => {
+          const loserRef = playerRef.doc(loser);
+          const loserDoc = await loserRef.get();
+          const loserDocExists = loserDoc.exists;
+          if (loserDocExists) {
+            // want to increment the loss for this player
+            await loserRef.update({
+              loss: FirebaseFirestore.FieldValue.increment(1),
+            });
+          } else {
+            // loser player doesnt yet exist in firebase, we need to add it
+            const loserData = {
+              id: loser,
+              wins: 0,
+              loss: 1,
+            };
+            await playerRef.doc(loser).set(loserData);
+          }
+        });
+      } else {
+        // if there is no winner, statistics do not change for anyone
+      }
     }
     this._emitAreaChanged();
+  }
+
+  private _determineLosersIDS(updatedState: GameInstance<UNOGameState>): string[] {
+    const winnerID = updatedState.state.winner;
+    const loserList: string[] = [];
+    const { players } = updatedState.state;
+    players.forEach(player => {
+      if (player.id !== winnerID) {
+        loserList.push(player.id);
+      }
+    });
+    return loserList;
+  }
+
+  /**
+   *  This private method helps to convert the collection to something the frontnend
+   *  can use
+   * @returns  a promise to a list of playerdata objects that are created from hhe datbase.
+   */
+  private async _createLeaderboardArray(): Promise<void> {
+    const board: PlayerData[] = [];
+    const querySnap = await playerRef.get();
+    const listOfPlayers = querySnap.docs;
+    listOfPlayers.forEach(player => {
+      const pData = player.data();
+      const playerData: PlayerData = { id: pData.id, wins: pData.wins, loss: pData.loss };
+      board.push(playerData);
+    });
+    this._database = board;
   }
 
   /**
@@ -126,7 +212,7 @@ export default class UNOGameArea extends GameArea<UNOGame> {
     if (command.type === 'JoinAI') {
       const game = this._game;
       this._validateGameInfo(game, command.gameID);
-      game?.joinAI(command.difficulty);
+      // game?.joinAI(command.difficulty);
       if (game) {
         this._stateUpdated(game.toModel());
         return { gameID: game.id } as InteractableCommandReturnType<CommandType>;
@@ -138,6 +224,14 @@ export default class UNOGameArea extends GameArea<UNOGame> {
       game?.colorChange(command.color as CardColor);
       if (game) {
         this._stateUpdated(game.toModel());
+      }
+      return undefined as InteractableCommandReturnType<CommandType>;
+    }
+    if (command.type === 'Leaderboard') {
+      const game = this._game;
+      this._validateGameInfo(game, command.gameID);
+      if (game) {
+        this._createLeaderboardArray();
       }
       return undefined as InteractableCommandReturnType<CommandType>;
     }

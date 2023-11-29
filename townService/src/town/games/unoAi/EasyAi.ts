@@ -17,46 +17,31 @@ class EasyAIStrategy {
    * Determines and performs the next move for the AI player.
    * The AI will play the first playable card found in its hand, or draw a card if none are playable.
    */
-  public makeMove() {
+  public makeMove(): GameMove<UNOMove> | null {
     const aiPlayer = this._game.state.players.find(player => player.id === this._aiPlayerID);
 
     if (!aiPlayer || !this._game.id) {
-      // No valid move possible, or game state not available
-      return;
+      return null;
     }
 
-    let playableCard = null;
-    for (const card of aiPlayer.cards) {
-      const mockMove: UNOMove = {
-        player: this._aiPlayerID,
-        card,
-      };
-      if (this._game._validMove(mockMove)) {
-        playableCard = card;
-        break; // Found a valid move, break the loop
-      }
-    }
+    const playableCard = aiPlayer.cards.find(card => this._game._validCard(card));
+
+    /*
+    const playableCard = aiPlayer.cards.find(card =>
+      this._game._validMove({ player: this._aiPlayerID, card }),
+    );
+    */
 
     if (!playableCard) {
-      // Draw a card if no playable card is found
       this._game.drawCard(this._aiPlayerID);
-      // Re-check for a playable card in the updated hand
-      // This part might be recursively called until a valid card is found
-      this.makeMove();
-      return;
+      return this.makeMove(); // Recursively call makeMove until a valid card is found or drawn
     }
 
-    // Play the found playable card
-    const move: GameMove<UNOMove> = {
+    return {
       playerID: this._aiPlayerID,
       gameID: this._game.id,
-      move: {
-        card: playableCard,
-        player: this._aiPlayerID,
-      },
+      move: { card: playableCard, player: this._aiPlayerID },
     };
-    // Apply the move
-    this._game.applyMove(move);
   }
 }
 
