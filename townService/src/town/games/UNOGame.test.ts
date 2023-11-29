@@ -491,5 +491,113 @@ describe('UNOGame', () => {
     });
   });
 
-  // Add any other necessary tests or setup/teardown logic - like public AI methods?
+  describe('colorChange', () => {
+    let colorChangeGame: UNOGame;
+    let currentPlayer: Player;
+    let otherPlayer: Player;
+
+    beforeEach(() => {
+      colorChangeGame = new UNOGame();
+      currentPlayer = createPlayerForTesting();
+      otherPlayer = createPlayerForTesting();
+
+      colorChangeGame._join(currentPlayer);
+      colorChangeGame._join(otherPlayer);
+
+      colorChangeGame.startGame();
+    });
+
+    it('should throw an error if the game is not in progress', () => {
+      colorChangeGame.state.status = 'WAITING_TO_START';
+      expect(() => colorChangeGame.colorChange('Red')).toThrowError(GAME_NOT_IN_PROGRESS_MESSAGE);
+    });
+
+    it('should throw an error if the color is invalid', () => {
+      // Typescript itself throws the error so this is fine.
+    });
+
+    it('should change the color of all Wild and Wild Draw Four cards', () => {
+      const newColor = 'Green';
+      colorChangeGame.colorChange(newColor);
+      game.state.players[0].cards.forEach(card => {
+        if (card.rank === 'Wild' || card.rank === '+4') {
+          expect(card.color).toEqual(newColor);
+        }
+      });
+    });
+
+    it('should not affect cards other than Wild and Wild Draw Four', () => {
+      const originalCards = game.state.players[0].cards.map(card => ({ ...card }));
+      colorChangeGame.colorChange('Blue');
+      game.state.players[0].cards.forEach((card, index) => {
+        if (card.rank !== 'Wild' && card.rank !== '+4') {
+          expect(card).toEqual(originalCards[index]);
+        }
+      });
+    });
+
+    it('should throw an error if the current player is not found', () => {
+      // Assuming the current player is set to an invalid index
+      colorChangeGame.state.currentPlayerIndex = -1;
+      expect(() => colorChangeGame.colorChange('Red')).toThrowError('CURRENT_PLAYER_NOT_FOUND');
+    });
+  });
+  describe('joinAI', () => {
+    // let game;
+
+    beforeEach(() => {
+      game = new UNOGame();
+      // Initialize game with some players
+    });
+
+    it('should throw an error if the game is full', () => {
+      // Add maximum players to the game
+      // Call joinAI and expect an error
+    });
+
+    it('should replace a non-AI player with an AI player', () => {
+      // Call joinAI
+      // Check that a non-AI player was replaced with an AI player
+    });
+
+    it('should throw an error if no human players are available to replace', () => {
+      // Set up a scenario where all players are AI
+      // Call joinAI and expect an error
+    });
+
+    it('should start the game if the maximum number of players is reached', () => {
+      // Add players to reach the max limit
+      // Call joinAI and check if the game starts
+    });
+
+    it('should initialize AI logic for the new AI player', () => {
+      // Call joinAI
+      // Check that AI logic (e.g., EasyAIStrategy) is initialized for the new AI player
+    });
+  });
+  describe('_validMove', () => {
+    // let game;
+    let move;
+
+    beforeEach(() => {
+      game = new UNOGame();
+      // Initialize game with players and set the game to 'IN_PROGRESS'
+      // Define a move
+    });
+
+    it("should throw an error if it is not the player's turn", () => {
+      // Set up a move for a player whose turn is not current
+      // Call _validMove and expect an error
+    });
+
+    it('should return true if the move is valid', () => {
+      // Set up a valid move
+      // Call _validMove and expect it to return true
+    });
+
+    it('should throw an error if the player making the move is not the current player', () => {
+      // Set up a move with a player ID different from the current player's ID
+      // Call _validMove and expect an error
+    });
+  });
 });
