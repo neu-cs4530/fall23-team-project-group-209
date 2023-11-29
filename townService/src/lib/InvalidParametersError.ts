@@ -7,6 +7,10 @@ export const GAME_IN_PROGRESS_MESSAGE = 'Game is already in progress';
 export const GAME_OVER_MESSAGE = 'Game is over';
 export const GAME_ID_MISSMATCH_MESSAGE = 'Game ID mismatch';
 
+export const NOT_PLAYER_TURN = 'NOT_PLAYER_TURN';
+export const PLAYER_NOT_FOUND_MESSAGE = 'Player not found or no card to draw';
+export const CARD_NOT_FOUND_IN_HAND = 'Card not found in player hand';
+
 export const BOARD_POSITION_NOT_EMPTY_MESSAGE = 'Board position is not empty';
 export const MOVE_NOT_YOUR_TURN_MESSAGE = 'Not your turn';
 

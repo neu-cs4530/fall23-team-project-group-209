@@ -1,5 +1,7 @@
+// eslint-disable-next-line import/no-cycle
 import UNOGame from '../UNOGame';
-import { Card, GameMove, UNOMove } from '../../../types/CoveyTownSocket';
+
+import { GameMove, UNOMove } from '../../../types/CoveyTownSocket';
 
 class EasyAIStrategy {
   private _game: UNOGame;
@@ -11,46 +13,35 @@ class EasyAIStrategy {
     this._aiPlayerID = aiPlayerID;
   }
 
-  async makeMove() {
-    const { topCard } = this._game.state;
+  /**
+   * Determines and performs the next move for the AI player.
+   * The AI will play the first playable card found in its hand, or draw a card if none are playable.
+   */
+  public makeMove(): GameMove<UNOMove> | null {
     const aiPlayer = this._game.state.players.find(player => player.id === this._aiPlayerID);
-    const gameID = this._game.id; // Assuming you have a game ID in your UNOGame class
 
-    if (!topCard || !aiPlayer || aiPlayer.cards.length === 0 || !gameID) {
-      // No valid move possible, or game state not available
-      return;
+    if (!aiPlayer || !this._game.id) {
+      return null;
     }
 
-    const playableCard = aiPlayer.cards.find(card => this.isCardPlayable(card, topCard));
+    const playableCard = aiPlayer.cards.find(card => this._game._validCard(card));
 
-    if (playableCard) {
-      // Construct the move according to the GameMove interface
-      const move: GameMove<UNOMove> = {
-        playerID: this._aiPlayerID,
-        gameID,
-        move: {
-          card: playableCard,
-          player: this._aiPlayerID,
-        }, // Assuming UNOMove structure matches this
-      };
-      // Play the first valid card found
-      await this._game.applyMove(move);
-    } else {
-      // No valid card to play, draw a card
-      await this._game.drawCard(this._aiPlayerID);
-    }
-  }
+    /*
+    const playableCard = aiPlayer.cards.find(card =>
+      this._game._validMove({ player: this._aiPlayerID, card }),
+    );
+    */
 
-  isCardPlayable(card: Card, topCard: Card): boolean {
-    // Basic check for color or value match
-    if (card.color === topCard.color || card.rank === topCard.rank) {
-      return true;
+    if (!playableCard) {
+      this._game.drawCard(this._aiPlayerID);
+      return this.makeMove(); // Recursively call makeMove until a valid card is found or drawn
     }
-    // Handling Wild cards
-    if (card.color === 'Wildcard') {
-      return true;
-    }
-    return false;
+
+    return {
+      playerID: this._aiPlayerID,
+      gameID: this._game.id,
+      move: { card: playableCard, player: this._aiPlayerID },
+    };
   }
 }
 
