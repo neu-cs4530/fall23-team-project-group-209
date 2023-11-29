@@ -52,46 +52,53 @@ export default class UNOGameArea extends GameArea<UNOGame> {
       if (updatedState.state.winner) {
         // there is a winner, updated winners wins, update losers losses
         const winnerID = updatedState.state.winner;
-        const winnerRef = playerRef.doc(winnerID);
-        const doc = await winnerRef.get();
-        const data = doc.data();
-        const doesExist = doc.exists;
-        if (doesExist && data) {
-          const currWins = data.wins;
-          await winnerRef.update({
-            wins: currWins + 1,
-          });
-        } else {
-          // winner player doesnt exist in firebase, we need to add it
-          const winnerData = {
-            id: winnerID,
-            wins: 1,
-            loss: 0,
-          };
-          await playerRef.doc(winnerID).set(winnerData);
-        }
-        // now we need to incremenent losses for all other players
-        const losers = this._determineLosersIDS(updatedState);
-        losers.forEach(async loser => {
-          const loserRef = playerRef.doc(loser);
-          const loserDoc = await loserRef.get();
-          const loserData = loserDoc.data();
-          const loserDocExists = loserDoc.exists;
-          if (loserDocExists && loserData) {
-            const currLoss = loserData.loss;
-            await loserRef.update({
-              loss: currLoss + 1,
+        const userName = this._getUser(winnerID);
+        if (userName) {
+          const winnerRef = playerRef.doc(userName);
+          const doc = await winnerRef.get();
+          const data = doc.data();
+          const doesExist = doc.exists;
+          if (doesExist && data && userName) {
+            const currWins = data.wins;
+            await winnerRef.update({
+              wins: currWins + 1,
             });
-          } else {
-            // loser player doesnt yet exist in firebase, we need to add it
-            const loserInfo = {
-              id: loser,
-              wins: 0,
-              loss: 1,
+          } else if (userName) {
+            // winner player doesnt exist in firebase, we need to add it
+            const winnerData = {
+              id: winnerID,
+              user: userName,
+              wins: 1,
+              loss: 0,
             };
-            await playerRef.doc(loser).set(loserInfo);
+            await playerRef.doc(userName).set(winnerData);
           }
-        });
+          // now we need to incremenent losses for all other players
+          const losers = this._determineLosersIDS(updatedState);
+          losers.forEach(async loser => {
+            const lossUser = this._getUser(loser);
+            if (lossUser) {
+              const loserRef = playerRef.doc(lossUser);
+              const loserDoc = await loserRef.get();
+              const loserData = loserDoc.data();
+              const loserDocExists = loserDoc.exists;
+              if (loserDocExists && loserData && lossUser) {
+                const currLoss = loserData.loss;
+                await loserRef.update({
+                  loss: currLoss + 1,
+                });
+              } else if (lossUser) {
+                const loserInfo = {
+                  id: loser,
+                  user: lossUser,
+                  wins: 0,
+                  loss: 1,
+                };
+                await playerRef.doc(lossUser).set(loserInfo);
+              }
+            }
+          });
+        }
       } else {
         // if there is no winner, statistics do not change for anyone
       }
@@ -99,6 +106,21 @@ export default class UNOGameArea extends GameArea<UNOGame> {
     this._emitAreaChanged();
   }
 
+  /**
+   * gets the username for the given id
+   * @param id  id
+   * @returns  username for id
+   */
+  private _getUser(id: string): string | undefined {
+    const player = this.occupants.find(p => p.id === id);
+    return player?.userName;
+  }
+
+  /**
+   * returns the list of ID's for all of the losers of the game
+   * @param updatedState the updated state with gameover
+   * @returns  list of Ids'
+   */
   private _determineLosersIDS(updatedState: GameInstance<UNOGameState>): string[] {
     const winnerID = updatedState.state.winner;
     const loserList: string[] = [];
