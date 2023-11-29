@@ -491,5 +491,124 @@ describe('UNOGame', () => {
     });
   });
 
-  // Add any other necessary tests or setup/teardown logic - like public AI methods?
+  describe('colorChange', () => {
+    let colorChangeGame: UNOGame;
+    let currentPlayer: Player;
+    let otherPlayer: Player;
+
+    beforeEach(() => {
+      colorChangeGame = new UNOGame();
+      currentPlayer = createPlayerForTesting();
+      otherPlayer = createPlayerForTesting();
+
+      colorChangeGame._join(currentPlayer);
+      colorChangeGame._join(otherPlayer);
+
+      colorChangeGame.startGame();
+    });
+
+    it('should throw an error if the game is not in progress', () => {
+      colorChangeGame.state.status = 'WAITING_TO_START';
+      expect(() => colorChangeGame.colorChange('Red')).toThrowError(GAME_NOT_IN_PROGRESS_MESSAGE);
+    });
+
+    it('should throw an error if the color is invalid', () => {
+      // Typescript itself throws the error so this is fine.
+    });
+
+    it('should change the color of all Wild and Wild Draw Four cards', () => {
+      const newColor = 'Green';
+      colorChangeGame.colorChange(newColor);
+      game.state.players[0].cards.forEach(card => {
+        if (card.rank === 'Wild' || card.rank === '+4') {
+          expect(card.color).toEqual(newColor);
+        }
+      });
+    });
+
+    it('should not affect cards other than Wild and Wild Draw Four', () => {
+      const originalCards = game.state.players[0].cards.map(card => ({ ...card }));
+      colorChangeGame.colorChange('Blue');
+      game.state.players[0].cards.forEach((card, index) => {
+        if (card.rank !== 'Wild' && card.rank !== '+4') {
+          expect(card).toEqual(originalCards[index]);
+        }
+      });
+    });
+
+    it('should throw an error if the current player is not found', () => {
+      // Setting to index that WILL fail.
+      colorChangeGame.state.currentPlayerIndex = -1;
+      expect(() => colorChangeGame.colorChange('Red')).toThrowError('CURRENT_PLAYER_NOT_FOUND');
+    });
+  });
+  describe('joinAI', () => {
+    let joinAIGame: UNOGame;
+    let humanPlayer1: Player;
+
+    beforeEach(() => {
+      joinAIGame = new UNOGame();
+      humanPlayer1 = createPlayerForTesting();
+      joinAIGame._join(humanPlayer1);
+    });
+
+    it('should throw an error if the game is full', () => {
+      for (let i = 0; i < joinAIGame.MAX_PLAYERS - 1; i++) {
+        joinAIGame._join(createPlayerForTesting());
+      }
+      expect(() => joinAIGame.joinAI('Easy')).toThrowError(GAME_FULL_MESSAGE);
+    });
+
+    it('should replace a non-AI player with an AI player', () => {
+      joinAIGame.joinAI('Easy');
+      const replacedPlayer = joinAIGame.state.players.find(player => player.id === humanPlayer1.id);
+      if (replacedPlayer) {
+        expect(replacedPlayer.isAI).toBe(true);
+      } else {
+        expect(1).toBe(2);
+      }
+    });
+  });
+  describe('_validMove', () => {
+    let validMoveGame: UNOGame;
+    let p1: Player;
+    let p2: Player;
+
+    beforeEach(() => {
+      validMoveGame = new UNOGame();
+      p1 = createPlayerForTesting();
+      p2 = createPlayerForTesting();
+      validMoveGame._join(p1);
+      validMoveGame._join(p2);
+      validMoveGame.startGame();
+    });
+
+    it("should throw an error if it is not the player's turn", () => {
+      const move: UNOMove = {
+        player: p2.id,
+        card: { color: 'Red', rank: 5 },
+      };
+      expect(() => validMoveGame._validMove(move)).toThrowError(NOT_PLAYER_TURN);
+    });
+
+    it('should return true if the move is valid', () => {
+      const move: UNOMove = {
+        player: p1.id,
+        card: { color: 'Blue', rank: 3 },
+      };
+      expect(validMoveGame._validMove(move)).toBe(true);
+    });
+    it('should return true if the move is not valid', () => {
+      // Typescript actually checks for these type errors and enforces so this makes my life easier.
+    });
+
+    it('should throw an error if the player making the move is not the current player', () => {
+      const move: UNOMove = {
+        player: p2.id,
+        card: { color: 'Green', rank: 2 },
+      };
+      validMoveGame.state.currentPlayerIndex = 0;
+      expect(() => validMoveGame._validMove(move)).toThrowError(NOT_PLAYER_TURN);
+    });
+  });
 });

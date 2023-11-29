@@ -503,7 +503,6 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       }
       this.state.topCard = placeCard.move.card;
     }
-
     this._updateCurrentPlayerIndexAndDir(placeCard.move, this.state.players);
     this._updateDeckStack(placeCard.move.card);
 
