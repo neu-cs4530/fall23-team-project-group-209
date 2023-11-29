@@ -306,7 +306,13 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
         <ModalContent alignItems='center' paddingY='30px'>
           <ModalCloseButton />
           <b>{'UNO Leaderboard'}</b>
-          <UNOLeaderboard board={lb} />
+          <UNOLeaderboard
+            board={lb
+              ?.sort((a: PlayerData, b: PlayerData) => {
+                return b.wins - a.wins;
+              })
+              .slice(0, 10)}
+          />
         </ModalContent>
       </Modal>
     ) : (

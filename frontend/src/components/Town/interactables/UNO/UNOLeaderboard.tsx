@@ -19,7 +19,7 @@ export default function UNOLeaderboard({
   board: PlayerData[] | undefined;
 }): JSX.Element {
   return board ? (
-    <Table>
+    <Table paddingTop='10px'>
       <Thead>
         <Tr>
           <th>Player</th>
