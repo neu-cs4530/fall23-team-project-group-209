@@ -606,8 +606,6 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       throw new InvalidParametersError(GAME_FULL_MESSAGE);
     }
 
-    console.log(difficulty);
-
     // Find the last non-AI player to replace with an AI player
     const nonAIPlayer = [...this.state.players].reverse().find(player => !player.isAI);
     if (nonAIPlayer) {
