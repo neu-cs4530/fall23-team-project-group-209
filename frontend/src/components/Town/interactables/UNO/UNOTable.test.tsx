@@ -1,16 +1,8 @@
 import assert from 'assert';
 import { mock } from 'jest-mock-extended';
 import { nanoid } from 'nanoid';
-import UNOAreaController from '../../../../classes/interactable/UNOAreaController';
 import PlayerController from '../../../../classes/PlayerController';
 import TownController, * as TownControllerHooks from '../../../../classes/TownController';
-import {
-  GameResult,
-  GameStatus,
-  UNOGameState,
-  GameArea,
-  Card,
-} from '../../../../types/CoveyTownSocket';
 import PhaserGameArea from '../GameArea';
 
 const mockToast = jest.fn();
@@ -27,127 +19,127 @@ const mockGameArea = mock<PhaserGameArea>();
 mockGameArea.getData.mockReturnValue('UNO');
 jest.spyOn(TownControllerHooks, 'useInteractable').mockReturnValue(mockGameArea);
 
-class MockUNOAreaController extends UNOAreaController {
-  makeMove = jest.fn();
+// class MockUNOAreaController extends UNOAreaController {
+//   makeMove = jest.fn();
 
-  joinGame = jest.fn();
+//   joinGame = jest.fn();
 
-  drawCard = jest.fn();
+//   drawCard = jest.fn();
 
-  startGame = jest.fn();
+//   startGame = jest.fn();
 
-  joinAI = jest.fn();
+//   joinAI = jest.fn();
 
-  changeColor = jest.fn();
+//   changeColor = jest.fn();
 
-  mockTopCard: Card | undefined = undefined;
+//   mockTopCard: Card | undefined = undefined;
 
-  mockDrawDeck: Card[] | undefined = undefined;
+//   mockDrawDeck: Card[] | undefined = undefined;
 
-  mockOurDeck: Card[] | undefined = undefined;
+//   mockOurDeck: Card[] | undefined = undefined;
 
-  mockPlayerDirection: string | undefined = undefined;
+//   mockPlayerDirection: string | undefined = undefined;
 
-  mockIsPlayer = false;
+//   mockIsPlayer = false;
 
-  mockIsOurTurn = false;
+//   mockIsOurTurn = false;
 
-  mockObservers: PlayerController[] = [];
+//   mockObservers: PlayerController[] = [];
 
-  mockWinner: PlayerController | undefined = undefined;
+//   mockWinner: PlayerController | undefined = undefined;
 
-  mockWhoseTurn: PlayerController | undefined = undefined;
+//   mockWhoseTurn: PlayerController | undefined = undefined;
 
-  mockStatus: GameStatus = 'WAITING_TO_START';
+//   mockStatus: GameStatus = 'WAITING_TO_START';
 
-  mockp1: PlayerController | undefined = undefined;
+//   mockp1: PlayerController | undefined = undefined;
 
-  mockp2: PlayerController | undefined = undefined;
+//   mockp2: PlayerController | undefined = undefined;
 
-  mockp3: PlayerController | undefined = undefined;
+//   mockp3: PlayerController | undefined = undefined;
 
-  mockp4: PlayerController | undefined = undefined;
+//   mockp4: PlayerController | undefined = undefined;
 
-  mockOthersCards: Map<string, number> | undefined = undefined;
+//   mockOthersCards: Map<string, number> | undefined = undefined;
 
-  mockCurrentGame: GameArea<UNOGameState> | undefined = undefined;
+//   mockCurrentGame: GameArea<UNOGameState> | undefined = undefined;
 
-  mockIsActive = false;
+//   mockIsActive = false;
 
-  mockHistory: GameResult[] = [];
+//   mockHistory: GameResult[] = [];
 
-  public constructor() {
-    super(nanoid(), mock<GameArea<UNOGameState>>(), mock<TownController>());
-  }
+//   public constructor() {
+//     super(nanoid(), mock<GameArea<UNOGameState>>(), mock<TownController>());
+//   }
 
-  get topCard() {
-    return this.mockTopCard;
-  }
+//   get topCard() {
+//     return this.mockTopCard;
+//   }
 
-  get drawDeck() {
-    return this.mockDrawDeck;
-  }
+//   get drawDeck() {
+//     return this.mockDrawDeck;
+//   }
 
-  get ourDeck() {
-    return this.mockOurDeck;
-  }
+//   get ourDeck() {
+//     return this.mockOurDeck;
+//   }
 
-  get playerDirection() {
-    return this.mockPlayerDirection;
-  }
+//   get playerDirection() {
+//     return this.mockPlayerDirection;
+//   }
 
-  get player1() {
-    return this.mockp1;
-  }
+//   get player1() {
+//     return this.mockp1;
+//   }
 
-  get player2() {
-    return this.mockp2;
-  }
+//   get player2() {
+//     return this.mockp2;
+//   }
 
-  get player3() {
-    return this.mockp3;
-  }
+//   get player3() {
+//     return this.mockp3;
+//   }
 
-  get player4() {
-    return this.mockp4;
-  }
+//   get player4() {
+//     return this.mockp4;
+//   }
 
-  get history(): GameResult[] {
-    return this.mockHistory;
-  }
+//   get history(): GameResult[] {
+//     return this.mockHistory;
+//   }
 
-  get isOurTurn() {
-    return this.mockIsOurTurn;
-  }
+//   get isOurTurn() {
+//     return this.mockIsOurTurn;
+//   }
 
-  get observers(): PlayerController[] {
-    return this.mockObservers;
-  }
+//   get observers(): PlayerController[] {
+//     return this.mockObservers;
+//   }
 
-  get winner(): PlayerController | undefined {
-    return this.mockWinner;
-  }
+//   get winner(): PlayerController | undefined {
+//     return this.mockWinner;
+//   }
 
-  get whoseTurn(): PlayerController | undefined {
-    return this.mockWhoseTurn;
-  }
+//   get whoseTurn(): PlayerController | undefined {
+//     return this.mockWhoseTurn;
+//   }
 
-  get status(): GameStatus {
-    return this.mockStatus;
-  }
+//   get status(): GameStatus {
+//     return this.mockStatus;
+//   }
 
-  get isPlayer() {
-    return this.mockIsPlayer;
-  }
+//   get isPlayer() {
+//     return this.mockIsPlayer;
+//   }
 
-  public isActive(): boolean {
-    return this.mockIsActive;
-  }
+//   public isActive(): boolean {
+//     return this.mockIsActive;
+//   }
 
-  public mockReset() {
-    this.makeMove.mockReset();
-  }
-}
+//   public mockReset() {
+//     this.makeMove.mockReset();
+//   }
+// }
 
 describe('UNOTableTests', () => {
   const ourPlayer = new PlayerController(nanoid(), 'player', {
@@ -176,7 +168,7 @@ describe('UNOTableTests', () => {
     return p;
   });
 
-  const gameAreaController = new MockUNOAreaController();
+  //   const gameAreaController = new MockUNOAreaController();
 
   //   function renderUNOTable() {
   //     return render(
