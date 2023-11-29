@@ -282,9 +282,6 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
   public _validCard(card: Card): boolean {
     const currTopCard = this.state.topCard;
 
-    console.log(currTopCard);
-    console.log(card);
-
     if (!currTopCard) {
       throw new InvalidParametersError(
         'Draw stack is greater than 0 but the top card is not valid',
@@ -320,7 +317,6 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       return true;
     }
 
-    console.log('False');
     // If none of the conditions are met, the card is not valid
     return false;
   }
@@ -609,8 +605,6 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     if (this.state.players.length >= this.MAX_PLAYERS) {
       throw new InvalidParametersError(GAME_FULL_MESSAGE);
     }
-
-    console.log(difficulty);
 
     // Find the last non-AI player to replace with an AI player
     const nonAIPlayer = [...this.state.players].reverse().find(player => !player.isAI);
