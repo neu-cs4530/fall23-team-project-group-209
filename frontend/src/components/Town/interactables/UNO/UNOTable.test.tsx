@@ -1,13 +1,9 @@
-import { ChakraProvider } from '@chakra-ui/react';
-import { render } from '@testing-library/react';
 import assert from 'assert';
 import { mock } from 'jest-mock-extended';
 import { nanoid } from 'nanoid';
-import React from 'react';
 import UNOAreaController from '../../../../classes/interactable/UNOAreaController';
 import PlayerController from '../../../../classes/PlayerController';
 import TownController, * as TownControllerHooks from '../../../../classes/TownController';
-import TownControllerContext from '../../../../contexts/TownControllerContext';
 import {
   GameResult,
   GameStatus,
@@ -16,7 +12,6 @@ import {
   Card,
 } from '../../../../types/CoveyTownSocket';
 import PhaserGameArea from '../GameArea';
-import UNOTable from './UNOTable';
 
 const mockToast = jest.fn();
 jest.mock('@chakra-ui/react', () => {
