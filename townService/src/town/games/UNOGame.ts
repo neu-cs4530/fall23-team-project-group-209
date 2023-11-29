@@ -277,13 +277,21 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
    * @throws {InvalidParametersError} If the card cannot be played based on the game rules.
    */
 
-  private _validCard(card: Card, topCard: Card): boolean {
+  public _validCard(card: Card): boolean {
+    const currTopCard = this.state.topCard;
+
+    if (!currTopCard) {
+      throw new InvalidParametersError(
+        'Draw stack is greater than 0 but the top card is not valid',
+      );
+    }
+
     // If there's a draw stack, check if the card continues the stack
     if (this.state.drawStack > 0) {
-      if (topCard.rank === '+4') {
+      if (currTopCard.rank === '+4') {
         return card.rank === '+4';
       }
-      if (topCard.rank === '+2') {
+      if (currTopCard.rank === '+2') {
         return card.rank === '+2' || card.rank === '+4';
       }
       // if the top card is not +2 or +4, we throw an Error as this condition is not possible
@@ -298,17 +306,17 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
 
     // Check if the colors match
-    if (card.color === topCard.color) {
+    if (card.color === currTopCard.color) {
       return true;
     }
 
     // Check if the ranks match
-    if (card.rank === topCard.rank) {
+    if (card.rank === currTopCard.rank) {
       return true;
     }
 
     // If none of the conditions are met, the card is not valid
-    throw new InvalidParametersError('INVALID_CARD');
+    return false;
   }
 
   /**
@@ -373,7 +381,21 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
    */
 
   private _defendableCards(cards: Card[]): boolean {
-    return cards.some(card => card.rank === '+2' || card.rank === '+4');
+    const currTopCard = this.state.topCard;
+
+    if (!currTopCard) {
+      return false; // In case there is no top card
+    }
+
+    if (currTopCard.rank === '+4') {
+      // Player can only defend with a '+4' card
+      return cards.some(card => card.rank === '+4');
+    }
+    if (currTopCard.rank === '+2') {
+      // Player can defend with either '+2' or '+4' card
+      return cards.some(card => card.rank === '+2' || card.rank === '+4');
+    }
+    return false; // No defense needed for other card types
   }
 
   /**
@@ -455,7 +477,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
     }
 
     this._validGameState();
-    this._validCard(placeCard.move.card, this.state.topCard);
+    this._validCard(placeCard.move.card);
     this._validMove(placeCard.move);
 
     // Currently player
@@ -482,19 +504,31 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       this.state.topCard = placeCard.move.card;
     }
 
-    console.log(this.state.drawStack);
-
     this._updateCurrentPlayerIndexAndDir(placeCard.move, this.state.players);
     this._updateDeckStack(placeCard.move.card);
 
-    // Determine the index of the next player
-    const nextPlayerIndex = this.state.currentPlayerIndex;
-    const nextPlayer = this.state.players[nextPlayerIndex];
+    const nextPlayer = this.state.players[this.state.currentPlayerIndex];
 
-    // Check if the next player is an AI
+    // Handle AI player's turn
     if (nextPlayer.isAI) {
-      // Assuming each AI player has an EasyAIStrategy instance in this._aiStrategies
-      this._aiStrategies[nextPlayer.id].makeMove();
+      if (this.state.drawStack > 0 && !this._defendableCards(nextPlayer.cards)) {
+        // AI needs to draw cards due to the draw stack and has no defendable cards
+        for (let i = 0; i < this.state.drawStack; i++) {
+          this.drawCard(nextPlayer.id);
+        }
+        this.state.drawStack = 0;
+        // Move to the next player after drawing
+        this._updateCurrentPlayerIndexAndDir(placeCard.move, this.state.players);
+      } else {
+        // AI makes a move
+        const aiMove = this._aiStrategies[nextPlayer.id].makeMove();
+        if (aiMove?.move.card.rank === '+4' || aiMove?.move.card.rank === 'Wild') {
+          aiMove.move.card.color = this.state.topCard.color;
+        }
+        if (aiMove) {
+          this.applyMove(aiMove); // This is a recursive call, but controlled
+        }
+      }
     }
   }
 
@@ -564,14 +598,15 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       throw new InvalidParametersError(GAME_FULL_MESSAGE);
     }
 
-    // Find the first non-AI player to replace with an AI player
-    const nonAIPlayer = this.state.players.find(player => !player.isAI);
+    // Find the last non-AI player to replace with an AI player
+    const nonAIPlayer = [...this.state.players].reverse().find(player => !player.isAI);
     if (nonAIPlayer) {
       // Update the found player to be an AI player
       nonAIPlayer.isAI = true;
 
       // Initialize AI logic for this player
       // Create a new EasyAIStrategy instance for this AI player
+
       this._aiStrategies[nonAIPlayer.id] = new EasyAIStrategy(this, nonAIPlayer.id);
 
       // Optionally, update the game state to reflect the change
