@@ -5,7 +5,6 @@ import {
   GameResult,
   GameState,
   InteractableID,
-  PlayerData,
 } from '../../types/CoveyTownSocket';
 import PlayerController from '../PlayerController';
 import TownController from '../TownController';
