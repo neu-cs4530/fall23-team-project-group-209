@@ -8,7 +8,7 @@ import {
   PLAYER_ALREADY_IN_GAME_MESSAGE,
   PLAYER_NOT_IN_GAME_MESSAGE,
 } from '../../lib/InvalidParametersError';
-import { Card, UNOMove } from '../../types/CoveyTownSocket';
+import { Card, UNOMove, UNOPlayer } from '../../types/CoveyTownSocket';
 import Player from '../../lib/Player';
 
 describe('UNOGame', () => {
@@ -537,42 +537,38 @@ describe('UNOGame', () => {
     });
 
     it('should throw an error if the current player is not found', () => {
-      // Assuming the current player is set to an invalid index
+      // Setting to index that WILL fail.
       colorChangeGame.state.currentPlayerIndex = -1;
       expect(() => colorChangeGame.colorChange('Red')).toThrowError('CURRENT_PLAYER_NOT_FOUND');
     });
   });
   describe('joinAI', () => {
-    // let game;
+    let joinAIGame: UNOGame;
+    let humanPlayer1: Player;
+    let humanPlayer2: Player;
 
     beforeEach(() => {
-      game = new UNOGame();
-      // Initialize game with some players
+      joinAIGame = new UNOGame();
+      humanPlayer1 = createPlayerForTesting();
+      humanPlayer2 = createPlayerForTesting();
+      joinAIGame._join(humanPlayer1);
     });
 
     it('should throw an error if the game is full', () => {
-      // Add maximum players to the game
-      // Call joinAI and expect an error
+      for (let i = 0; i < joinAIGame.MAX_PLAYERS - 1; i++) {
+        joinAIGame._join(createPlayerForTesting());
+      }
+      expect(() => joinAIGame.joinAI('Easy')).toThrowError(GAME_FULL_MESSAGE);
     });
 
     it('should replace a non-AI player with an AI player', () => {
-      // Call joinAI
-      // Check that a non-AI player was replaced with an AI player
-    });
-
-    it('should throw an error if no human players are available to replace', () => {
-      // Set up a scenario where all players are AI
-      // Call joinAI and expect an error
-    });
-
-    it('should start the game if the maximum number of players is reached', () => {
-      // Add players to reach the max limit
-      // Call joinAI and check if the game starts
-    });
-
-    it('should initialize AI logic for the new AI player', () => {
-      // Call joinAI
-      // Check that AI logic (e.g., EasyAIStrategy) is initialized for the new AI player
+      joinAIGame.joinAI('Easy');
+      const replacedPlayer = joinAIGame.state.players.find(player => player.id === humanPlayer1.id);
+      if (replacedPlayer) {
+        expect(replacedPlayer.isAI).toBe(true);
+      } else {
+        expect(1).toBe(2);
+      }
     });
   });
   describe('_validMove', () => {
