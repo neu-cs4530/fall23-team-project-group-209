@@ -94,7 +94,8 @@ function RenderOpponent({
         <HStack>
           <Image src='/user.png' boxSize='80px' alt={username} />
         </HStack>
-        <span>{`${username}${theirTurn ? ' (their turn)' : ''}`}</span>
+        <span>{username}</span>
+        <span>{theirTurn ? ' (their turn)' : ''}</span>
         <span>{`${cardCount} card(s) left`}</span>
       </VStack>
     </Container>
@@ -173,6 +174,34 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
     };
     const otherCardsChanged = () => {
       setOthersCards(gameAreaController.othersCards);
+      if (p1 && othersCards && othersCards.get(p1.id) === 1) {
+        toast({
+          title: 'UNO!',
+          description: `${p1.userName} has 1 card left!`,
+          status: 'warning',
+        });
+      }
+      if (p2 && othersCards && othersCards.get(p2.id) === 1) {
+        toast({
+          title: 'UNO!',
+          description: `${p2.userName} has 1 card left!`,
+          status: 'warning',
+        });
+      }
+      if (p3 && othersCards && othersCards.get(p3.id) === 1) {
+        toast({
+          title: 'UNO!',
+          description: `${p3.userName} has 1 card left!`,
+          status: 'warning',
+        });
+      }
+      if (p4 && othersCards && othersCards.get(p4.id) === 1) {
+        toast({
+          title: 'UNO!',
+          description: `${p4.userName} has 1 card left!`,
+          status: 'warning',
+        });
+      }
     };
     //listeners from controller TODO
     gameAreaController.addListener('gameUpdated', updateGame);
@@ -190,7 +219,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
       gameAreaController.removeListener('topCardChanged', topCardChanged);
       gameAreaController.removeListener('otherCardsChanged', otherCardsChanged);
     };
-  }, [gameAreaController, townAreaController]);
+  }, [gameAreaController, othersCards, p1, p2, p3, p4, toast, townAreaController]);
 
   if (ourPlayer === p1?.id) {
     playerList.push(p1);
@@ -234,7 +263,6 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
     if (cards[idx].rank === '+4' || cards[idx].rank === 'Wild') {
       setCardChosen(cards[idx]);
       setModalOpen(true);
-      // setCardChosen(undefined); set this somewhere else
     } else {
       try {
         await gameAreaController.makeMove(cards[idx]);

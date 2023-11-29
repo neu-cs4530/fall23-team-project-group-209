@@ -28,10 +28,10 @@ export default function UNOLeaderboard({
         </Tr>
       </Thead>
       <Tbody>
-        {board.map((plr: PlayerData, idx: number) => {
+        {board.map((plr: PlayerData) => {
           return (
-            <Tr key={idx}>
-              <Td>{plr.id}</Td>
+            <Tr key={plr.id}>
+              <Td>{plr.user}</Td>
               <Td>{plr.wins}</Td>
               <Td>{plr.loss}</Td>
             </Tr>

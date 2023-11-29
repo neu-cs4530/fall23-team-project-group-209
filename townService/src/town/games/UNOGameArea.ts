@@ -144,7 +144,12 @@ export default class UNOGameArea extends GameArea<UNOGame> {
     const listOfPlayers = querySnap.docs;
     listOfPlayers.forEach(player => {
       const pData = player.data();
-      const playerData: PlayerData = { id: pData.id, wins: pData.wins, loss: pData.loss };
+      const playerData: PlayerData = {
+        user: pData.user,
+        id: pData.id,
+        wins: pData.wins,
+        loss: pData.loss,
+      };
       board.push(playerData);
     });
     this._database = board;

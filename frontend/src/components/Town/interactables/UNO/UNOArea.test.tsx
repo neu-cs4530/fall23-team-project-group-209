@@ -334,7 +334,9 @@ describe('UNOAreaTests', () => {
       gameAreaController.mockp1 = ourPlayer;
       gameAreaController.mockStatus = 'WAITING_TO_START';
       act(() => {
-        gameAreaController.emit('leaderboardFetched', [{ id: ourPlayer.id, wins: 3, loss: 3 }]);
+        gameAreaController.emit('leaderboardFetched', [
+          { user: ourPlayer.userName, id: ourPlayer.id, wins: 3, loss: 3 },
+        ]);
       });
       renderUNOArea();
       const button = screen.getByText('Leaderboard');
