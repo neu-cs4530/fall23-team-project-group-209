@@ -1,17 +1,35 @@
-import { Box, HStack, VStack } from '@chakra-ui/react';
-import { Container } from '@material-ui/core';
+import {
+  Box,
+  Container,
+  GridItem,
+  HStack,
+  Image,
+  Modal,
+  ModalContent,
+  ModalOverlay,
+  SimpleGrid,
+  useToast,
+  VStack,
+} from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import UNOAreaController from '../../../../classes/interactable/UNOAreaController';
 import PlayerController from '../../../../classes/PlayerController';
 import useTownController from '../../../../hooks/useTownController';
-import { Card as PlayerCard } from '../../../../types/CoveyTownSocket';
+import { Card as PlayerCard, CardColor } from '../../../../types/CoveyTownSocket';
 
 export type UNOGameProps = {
   gameAreaController: UNOAreaController;
 };
 
 // function to create front card sprite
-function RenderCard({ card, onClick }: { card: PlayerCard; onClick?: () => void }): JSX.Element {
+function RenderCard({
+  card,
+  onClick,
+}: {
+  card: PlayerCard;
+  deckColor?: CardColor;
+  onClick?: () => void;
+}): JSX.Element {
   const cardText =
     card.rank === 'Reverse'
       ? 'R'
@@ -26,29 +44,14 @@ function RenderCard({ card, onClick }: { card: PlayerCard; onClick?: () => void 
       borderRadius='3px'
       paddingX='15px'
       paddingY='18px'
+      margin='auto'
       maxH={59}
       outline='solid'
       outlineColor='black'
-      bg={card.color}
+      bg={card.color === 'Wildcard' ? 'white' : card.color}
       textColor={card.color === 'Yellow' || card.color === 'Wildcard' ? 'black' : 'white'}
       onClick={onClick}>
       {cardText}
-    </Box>
-  );
-}
-
-// function to display card count for opponents
-function RenderOpponentCards({ count }: { count: number }): JSX.Element {
-  return (
-    <Box
-      textAlign='center'
-      borderRadius='3px'
-      paddingX='15px'
-      maxH={59}
-      paddingY='18px'
-      outline='solid'
-      bg='lightgray'>
-      {count}
     </Box>
   );
 }
@@ -93,10 +96,13 @@ function RenderOpponent({
   theirTurn: boolean;
 }) {
   return (
-    <Container>
-      <VStack>
-        <RenderOpponentCards count={cardCount} />
-        <span>{`${username} ${theirTurn ? '(their turn)' : ''}`}</span>
+    <Container paddingX='100px' minW='fit-content'>
+      <VStack minW='full'>
+        <HStack>
+          <Image src='/user.png' boxSize='80px' alt={username} />
+        </HStack>
+        <span>{`${username}${theirTurn ? ' (their turn)' : ''}`}</span>
+        <span>{`${cardCount} card(s) left`}</span>
       </VStack>
     </Container>
   );
@@ -112,28 +118,18 @@ function RenderOpponent({
 // renders the deck that cards will be pulled from
 // onClick to draw from deck
 function RenderDeck({ onClick }: { onClick: () => void }): JSX.Element {
-  return (
-    <Box
-      textAlign='center'
-      borderRadius='3px'
-      maxH={59}
-      paddingX='19px'
-      paddingY='18px'
-      outline='solid'
-      bg='lightgray'
-      onClick={onClick}>
-      {''}
-    </Box>
-  );
+  return <Image boxSize='80px' src='/unocard.png' alt='deck' onClick={onClick} />;
 }
 
 /**
- * Where the actual gameplay occurs.
+ * Where the actual gameplay renders and occurs.
  *
  * @returns
  */
 export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Element {
   const townAreaController = useTownController();
+  const toast = useToast();
+  const [modalOpen, setModalOpen] = useState(false);
   //states to hold values
   const playerList: PlayerController[] = [];
   const ourPlayer = townAreaController.ourPlayer.id;
@@ -145,10 +141,11 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
   const [topCard, setTopCard] = useState(
     gameAreaController.topCard || ({ color: 'Wildcard', rank: 'Wild' } as PlayerCard),
   );
-  //const [winner, setWinner] = useState(gameAreaController.winner);
+  const [, setWinner] = useState(gameAreaController.winner);
   const [othersCards, setOthersCards] = useState(gameAreaController.othersCards);
   const [ourTurn, setOurTurn] = useState(gameAreaController.isOurTurn);
   const [whoseTurn, setWhoseTurn] = useState(gameAreaController.whoseTurn);
+  const [cardChosen, setCardChosen] = useState<PlayerCard | undefined>(undefined); //used for wild and +4
 
   useEffect(() => {
     //functions to update states TODO
@@ -159,22 +156,44 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
       setP4(gameAreaController.player4);
       setCards(gameAreaController.ourDeck || []);
       setOthersCards(gameAreaController.othersCards);
-      setTopCard(gameAreaController.topCard || ({ color: 'Blue', rank: 'Wild' } as PlayerCard));
       setOurTurn(gameAreaController.isOurTurn);
       setWhoseTurn(gameAreaController.whoseTurn);
-      //todo
+      if (gameAreaController.topCard) {
+        setTopCard(gameAreaController.topCard);
+      }
     };
     const endGame = () => {
-      //todo
-      //setWinner(gameAreaController.winner);
+      setWinner(gameAreaController.winner);
+    };
+    const turnChanged = () => {
+      setWhoseTurn(gameAreaController.whoseTurn);
+    };
+    const ourDeckChanged = () => {
+      setCards(gameAreaController.ourDeck || []);
+    };
+    const topCardChanged = () => {
+      if (gameAreaController.topCard) {
+        setTopCard(gameAreaController.topCard);
+      }
+    };
+    const otherCardsChanged = () => {
+      setOthersCards(gameAreaController.othersCards);
     };
     //listeners from controller TODO
     gameAreaController.addListener('gameUpdated', updateGame);
     gameAreaController.addListener('gameEnd', endGame);
+    gameAreaController.addListener('turnChanged', turnChanged);
+    gameAreaController.addListener('ourDeckChanged', ourDeckChanged);
+    gameAreaController.addListener('topCardChanged', topCardChanged);
+    gameAreaController.addListener('otherCardsChanged', otherCardsChanged);
     //TODO
     return () => {
       gameAreaController.removeListener('gameUpdated', updateGame);
       gameAreaController.removeListener('gameEnd', endGame);
+      gameAreaController.removeListener('turnChanged', turnChanged);
+      gameAreaController.removeListener('ourDeckChanged', ourDeckChanged);
+      gameAreaController.removeListener('topCardChanged', topCardChanged);
+      gameAreaController.removeListener('otherCardsChanged', otherCardsChanged);
     };
   }, [gameAreaController, townAreaController]);
 
@@ -206,108 +225,212 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
   }
 
   const onDeckClick = async () => {
-    console.log('onDeckClicked');
-    await gameAreaController.drawCard();
+    try {
+      await gameAreaController.drawCard();
+    } catch (err) {
+      toast({
+        title: 'Error drawing from deck',
+        description: (err as Error).toString(),
+        status: 'error',
+      });
+    }
   };
   const onCardClick = async (idx: number) => {
-    console.log('onCardClicked');
-    await gameAreaController.makeMove(cards[idx]);
+    if (cards[idx].rank === '+4' || cards[idx].rank === 'Wild') {
+      setCardChosen(cards[idx]);
+      setModalOpen(true);
+      // setCardChosen(undefined); set this somewhere else
+    } else {
+      try {
+        await gameAreaController.makeMove(cards[idx]);
+      } catch (err) {
+        toast({
+          title: 'Error placing card',
+          description: (err as Error).toString(),
+          status: 'error',
+        });
+      }
+    }
   };
   function View(): JSX.Element {
-    if (p1 && p2 && p3 && p4) {
+    if (playerList.at(3)) {
       return (
-        <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
+        <VStack minH='full' minW='full' paddingY='30px' spacing='100px'>
           <RenderOpponent
-            username={playerList.at(2)?.userName ?? ''}
-            cardCount={othersCards?.get(p3.id) ?? 0}
-            theirTurn={playerList.at(2)?.id === whoseTurn?.id || false}
+            username={playerList[2].userName}
+            cardCount={othersCards?.get(playerList[2].id) ?? 0}
+            theirTurn={playerList[2].id === whoseTurn?.id || false}
           />
-          <HStack minW='full' spacing='100px' align='stretch'>
+          <HStack paddingRight='70px'>
             <RenderOpponent
-              username={playerList.at(3)?.userName ?? ''}
-              cardCount={othersCards?.get(p4.id) ?? 0}
-              theirTurn={playerList.at(3)?.id === whoseTurn?.id || false}
+              username={playerList[3].userName}
+              cardCount={othersCards?.get(playerList[3].id) ?? 0}
+              theirTurn={playerList[3].id === whoseTurn?.id || false}
             />
             <RenderCard card={topCard} />
             <RenderDeck onClick={onDeckClick} />
             <RenderOpponent
-              username={playerList.at(1)?.userName ?? ''}
-              cardCount={othersCards?.get(p2.id) ?? 0}
-              theirTurn={playerList.at(1)?.userName === whoseTurn}
+              username={playerList[1].userName}
+              cardCount={othersCards?.get(playerList[1].id) ?? 0}
+              theirTurn={playerList[1].id === whoseTurn?.id || false}
             />
           </HStack>
           <RenderPlayer
-            username={playerList.at(0)?.userName ?? ''}
+            username={playerList[0].userName}
             cards={cards}
             onClick={onCardClick}
             isYourTurn={ourTurn}
           />
         </VStack>
       );
-    } else if (p1 && p2 && p3) {
+    } else if (playerList.at(2)) {
       return (
         <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
           <></>
-          <HStack minW='full' spacing='100px' align='stretch'>
+          <HStack alignItems='stretch' paddingRight='100px'>
             <RenderOpponent
-              username={playerList.at(2)?.userName ?? ''}
-              cardCount={othersCards?.get(p3.id) ?? 0}
-              theirTurn={playerList.at(2)?.id === whoseTurn?.id || false}
+              username={playerList[2].userName}
+              cardCount={othersCards?.get(playerList[2].id) ?? 0}
+              theirTurn={playerList[2].id === whoseTurn?.id || false}
             />
-            <RenderCard card={topCard} />
-            <RenderDeck onClick={onDeckClick} />
             <RenderOpponent
-              username={playerList.at(1)?.userName ?? ''}
-              cardCount={othersCards?.get(p2.id) ?? 0}
-              theirTurn={playerList.at(1)?.id === whoseTurn?.id || false}
+              username={playerList[1].userName}
+              cardCount={othersCards?.get(playerList[1].id) ?? 0}
+              theirTurn={playerList[1].id === whoseTurn?.id || false}
             />
           </HStack>
+          <HStack>
+            <RenderCard card={topCard} />
+            <RenderDeck onClick={onDeckClick} />
+          </HStack>
           <RenderPlayer
-            username={playerList.at(0)?.userName ?? ''}
+            username={playerList[0].userName}
             cards={cards}
             onClick={onCardClick}
             isYourTurn={ourTurn}
           />
         </VStack>
       );
-    } else if (p1 && p2) {
+    } else if (playerList.at(1)) {
       return (
         <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
           <RenderOpponent
-            username={playerList.at(1)?.userName ?? ''}
-            cardCount={othersCards?.get(p2.id) ?? 0}
-            theirTurn={playerList.at(1)?.id === whoseTurn?.id || false}
+            username={playerList[1].userName}
+            cardCount={othersCards?.get(playerList[1].id) ?? 0}
+            theirTurn={playerList[1].id === whoseTurn?.id || false}
           />
-          <HStack minW='full' spacing='100px' align='stretch'>
+          <HStack>
             <RenderCard card={topCard} />
             <RenderDeck onClick={onDeckClick} />
           </HStack>
           <RenderPlayer
-            username={playerList.at(0)?.userName ?? ''}
+            username={playerList[0].userName}
             cards={cards}
             onClick={onCardClick}
             isYourTurn={ourTurn}
           />
         </VStack>
       );
-    } else
-      return (
-        <VStack minH='full' paddingY='30px' spacing='100px' align='center'>
-          <RenderOpponent username={'test'} cardCount={0} theirTurn={false} />
-          <HStack minW='full' spacing='100px' align='stretch'>
-            <RenderOpponent username={'test'} cardCount={0} theirTurn={false} />
-            <RenderCard card={topCard} onClick={() => {}} />
-            <RenderDeck onClick={onDeckClick} />
-            <RenderOpponent username={'test'} cardCount={0} theirTurn={false} />
-          </HStack>
-          <RenderPlayer username={'test'} cards={cards} onClick={() => {}} isYourTurn={false} />
-        </VStack>
-      );
+    } else return <></>;
+  }
+
+  function ColorPickingModal({
+    isOpen,
+    onClose,
+    card,
+  }: {
+    isOpen: boolean;
+    onClose: () => void;
+    card: PlayerCard;
+  }): JSX.Element {
+    return (
+      <Modal size='md' isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent alignItems='center' textAlign='center' paddingY='30px'>
+          <VStack spacing='3'>
+            <span>{'You placed a +4 or a Wildcard! Pick the next color of the stack.'}</span>
+            <SimpleGrid columns={2}>
+              <GridItem>
+                <Box
+                  margin='auto'
+                  borderRadius='2px'
+                  w='150px'
+                  h='150px'
+                  outline='solid'
+                  outlineColor='black'
+                  bg='green'
+                  onClick={async () => {
+                    await gameAreaController.changeColor('Green');
+                    await gameAreaController.makeMove({ rank: card.rank, color: 'Green' });
+                    onClose();
+                  }}
+                />
+              </GridItem>
+              <GridItem>
+                <Box
+                  margin='auto'
+                  borderRadius='3px'
+                  w='150px'
+                  h='150px'
+                  outline='solid'
+                  outlineColor='black'
+                  bg='blue'
+                  onClick={async () => {
+                    await gameAreaController.changeColor('Blue');
+                    await gameAreaController.makeMove({ rank: card.rank, color: 'Blue' });
+                    onClose();
+                  }}
+                />
+              </GridItem>
+              <GridItem>
+                <Box
+                  margin='auto'
+                  borderRadius='3px'
+                  w='150px'
+                  h='150px'
+                  outline='solid'
+                  outlineColor='black'
+                  bg='yellow'
+                  onClick={async () => {
+                    await gameAreaController.changeColor('Yellow');
+                    await gameAreaController.makeMove({ rank: card.rank, color: 'Yellow' });
+                    onClose();
+                  }}
+                />
+              </GridItem>
+              <GridItem>
+                <Box
+                  margin='auto'
+                  borderRadius='3px'
+                  w='150px'
+                  h='150px'
+                  outline='solid'
+                  outlineColor='black'
+                  bg='red'
+                  onClick={async () => {
+                    await gameAreaController.changeColor('Red');
+                    await gameAreaController.makeMove({ rank: card.rank, color: 'Red' });
+                    onClose();
+                  }}
+                />
+              </GridItem>
+            </SimpleGrid>
+          </VStack>
+        </ModalContent>
+      </Modal>
+    );
   }
 
   return (
-    <VStack>
+    <Container>
+      {cardChosen && (
+        <ColorPickingModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          card={cardChosen}
+        />
+      )}
       <View />
-    </VStack>
+    </Container>
   );
 }
