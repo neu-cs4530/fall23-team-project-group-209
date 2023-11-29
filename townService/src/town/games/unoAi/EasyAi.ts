@@ -26,12 +26,6 @@ class EasyAIStrategy {
 
     const playableCard = aiPlayer.cards.find(card => this._game._validCard(card));
 
-    /*
-    const playableCard = aiPlayer.cards.find(card =>
-      this._game._validMove({ player: this._aiPlayerID, card }),
-    );
-    */
-
     if (!playableCard) {
       this._game.drawCard(this._aiPlayerID);
       return this.makeMove(); // Recursively call makeMove until a valid card is found or drawn
