@@ -39,6 +39,8 @@ class MockUNOAreaController extends UNOAreaController {
 
   changeColor = jest.fn();
 
+  leaderBoard = jest.fn();
+
   mockTopCard: Card | undefined = undefined;
 
   mockDrawDeck: Card[] | undefined = undefined;
@@ -327,17 +329,30 @@ describe('UNOAreaTests', () => {
   });
 
   describe('button clicks', () => {
-    it('should open the leaderboard modal when clicked', () => {
+    it('should open the leaderboard modal when clicked', async () => {
+      gameAreaController.mockIsPlayer = true;
+      gameAreaController.mockp1 = ourPlayer;
+      gameAreaController.mockStatus = 'WAITING_TO_START';
+      act(() => {
+        gameAreaController.emit('leaderboardFetched', [
+          { user: ourPlayer.userName, id: ourPlayer.id, wins: 3, loss: 3 },
+        ]);
+      });
       renderUNOArea();
       const button = screen.getByText('Leaderboard');
-      fireEvent.click(button);
+      await act(async () => {
+        fireEvent.click(button);
+      });
+      expect(gameAreaController.leaderBoard).toBeCalled();
       expect(screen.queryByText('UNO Leaderboard')).toBeInTheDocument();
     });
 
-    it('should open the rules modal when clicked', () => {
+    it('should open the rules modal when clicked', async () => {
       renderUNOArea();
       const button = screen.getByText('Rules');
-      fireEvent.click(button);
+      await act(async () => {
+        fireEvent.click(button);
+      });
       expect(screen.queryByText('UNO Rules')).toBeInTheDocument();
     });
 

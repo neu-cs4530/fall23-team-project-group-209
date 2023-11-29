@@ -355,6 +355,7 @@ export interface UNOPickUp {
  * the data for a player that is stored in our database. 
  */
 export type PlayerData = {
+  user: string;
   id: string;
   wins: number;
   loss: number;
