@@ -214,7 +214,7 @@ export default class UNOGameArea extends GameArea<UNOGame> {
     if (command.type === 'JoinAI') {
       const game = this._game;
       this._validateGameInfo(game, command.gameID);
-      // game?.joinAI(command.difficulty);
+      game?.joinAI(command.difficulty);
       if (game) {
         this._stateUpdated(game.toModel());
         return { gameID: game.id } as InteractableCommandReturnType<CommandType>;
