@@ -8,7 +8,7 @@ import {
   PLAYER_ALREADY_IN_GAME_MESSAGE,
   PLAYER_NOT_IN_GAME_MESSAGE,
 } from '../../lib/InvalidParametersError';
-import { Card, UNOMove, UNOPlayer } from '../../types/CoveyTownSocket';
+import { Card, UNOMove } from '../../types/CoveyTownSocket';
 import Player from '../../lib/Player';
 
 describe('UNOGame', () => {
