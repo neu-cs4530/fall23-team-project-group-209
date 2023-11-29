@@ -478,9 +478,9 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       throw new InvalidParametersError('NOT_PLAYER_TURN');
     }
 
-    this._validGameState();
-    this._validCard(placeCard.move.card);
-    this._validMove(placeCard.move);
+    if (!this._validGameState()) {
+      throw new InvalidParametersError('NOT A VALID GAMESTATE WHEN MOVE APPLIED');
+    }
 
     // Currently player
     const currentPlayer = this.state.players[this.state.currentPlayerIndex];
@@ -493,6 +493,13 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       }
       this.state.drawStack = 0;
     } else {
+      if (!this._validCard(placeCard.move.card)) {
+        throw new InvalidParametersError('NOT A VALID CARD WHEN MOVE APPLIED');
+      }
+
+      if (!this._validMove(placeCard.move)) {
+        throw new InvalidParametersError('NOT A VALID MOVE WHEN MOVE APPLIED');
+      }
       // Remove the card from the player's hand
       this._removePlacedCardFromHand(placeCard.move.player, placeCard.move.card);
 
@@ -608,7 +615,7 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
       // Initialize the appropriate AI logic based on the difficulty
       if (difficulty === 'Easy') {
         this._aiStrategies[nonAIPlayer.id] = new EasyAIStrategy(this, nonAIPlayer.id);
-      } else if (difficulty === 'Medium') {
+      } else if (difficulty === 'Med') {
         this._aiStrategies[nonAIPlayer.id] = new MediumAIStrategy(this, nonAIPlayer.id);
       } else {
         throw new InvalidParametersError('INVALID_DIFFICULTY');
