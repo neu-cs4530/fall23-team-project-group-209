@@ -1,4 +1,11 @@
-import { Card, GameArea, GameStatus, PlayerData, UNOGameState, UNOPlayer } from '../../types/CoveyTownSocket';
+import {
+  Card,
+  GameArea,
+  GameStatus,
+  PlayerData,
+  UNOGameState,
+  UNOPlayer,
+} from '../../types/CoveyTownSocket';
 import PlayerController from '../PlayerController';
 import GameAreaController, { GameEventTypes } from './GameAreaController';
 import { PLAYER_NOT_IN_GAME_ERROR } from './TicTacToeAreaController';

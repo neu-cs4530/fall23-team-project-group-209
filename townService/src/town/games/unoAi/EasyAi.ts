@@ -24,7 +24,8 @@ class EasyAIStrategy {
       return null;
     }
 
-    const playableCard = aiPlayer.cards.find(card => this._game._validCard(card));
+    // const playableCard = aiPlayer.cards.find(card => this._game._validCard(card));
+    const playableCard: Card = { rank: '+2', color: 'Red' };
 
     /*
     const playableCard = aiPlayer.cards.find(card =>
@@ -32,13 +33,13 @@ class EasyAIStrategy {
     );
     */
 
-    console.log('AI Move');
-    console.log(playableCard);
+    // console.log('AI Move');
+    // console.log(playableCard);
 
-    if (!playableCard) {
-      this._game.drawCard(this._aiPlayerID);
-      return this.makeMove(); // Recursively call makeMove until a valid card is found or drawn
-    }
+    // if (!playableCard) {
+    //   this._game.drawCard(this._aiPlayerID);
+    //   return this.makeMove(); // Recursively call makeMove until a valid card is found or drawn
+    // }
 
     return {
       playerID: this._aiPlayerID,

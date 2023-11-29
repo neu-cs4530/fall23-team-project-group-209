@@ -1,5 +1,6 @@
 import { Table, Thead, Tr, Tbody, Td } from '@chakra-ui/react';
 import React from 'react';
+import { PlayerData } from '../../../../../../shared/types/CoveyTownSocket';
 
 /**
  * This is the leaderboard component that renders a board based on the database that we have created.
@@ -12,10 +13,13 @@ import React from 'react';
  * the rows are ordered based on wins, with the highest winning player at the top of the leaderboard
  * we may incorporate the ability to search for a name in the leaderboard
  */
-export default function UNOLeaderboard(): JSX.Element {
-  // not sure what the parameter is yet to read from database?
-  // maybe a stringified json?
-  return (
+export default function UNOLeaderboard({
+  board,
+}: {
+  board: PlayerData[] | undefined;
+}): JSX.Element {
+  if (board && board[0]) console.log(board[0]);
+  return board ? (
     <Table>
       <Thead>
         <Tr>
@@ -25,12 +29,18 @@ export default function UNOLeaderboard(): JSX.Element {
         </Tr>
       </Thead>
       <Tbody>
-        <Tr key={1}>
-          <Td>{'player1'}</Td>
-          <Td>{'p1 wins'}</Td>
-          <Td>{'p1 losses'}</Td>
-        </Tr>
+        {board.map((plr: PlayerData, idx: number) => {
+          return (
+            <Tr key={idx}>
+              <Td>{plr.id}</Td>
+              <Td>{plr.wins}</Td>
+              <Td>{plr.loss}</Td>
+            </Tr>
+          );
+        })}
       </Tbody>
     </Table>
+  ) : (
+    <span>No data yet! Play a game to join the leaderboard.</span>
   );
 }

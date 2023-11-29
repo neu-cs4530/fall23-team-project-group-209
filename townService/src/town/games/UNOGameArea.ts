@@ -1,5 +1,6 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import admin from 'firebase-admin';
+import { cert } from 'firebase-admin/app';
+import FirebaseFirestore, { FieldValue, increment, updateDoc } from 'firebase/firestore';
 import InvalidParametersError, {
   GAME_ID_MISSMATCH_MESSAGE,
   GAME_NOT_IN_PROGRESS_MESSAGE,
@@ -19,10 +20,13 @@ import {
 // eslint-disable-next-line import/no-cycle
 import GameArea from './GameArea';
 import UNOGame from './UNOGame';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import serviceAccount from './leaderboard-Service-Keys.json' assert { type: 'json' };
 // below is the stuff to set up the database, which will be updated in this class
 
 admin.initializeApp({
-  credential: admin.credential.cert('./leaderboard-Service-Keys.json'),
+  credential: cert(serviceAccount as admin.ServiceAccount),
   databaseURL: 'https://leaderboard-4cc7e-default-rtdb.firebaseio.com',
 });
 
@@ -58,7 +62,7 @@ export default class UNOGameArea extends GameArea<UNOGame> {
         if (doesExist) {
           // want to increment the wins for this player
           await winnerRef.update({
-            wins: FirebaseFirestore.FieldValue.increment(1),
+            wins: increment(1),
           });
         } else {
           // winner player doesnt exist in firebase, we need to add it
@@ -78,7 +82,7 @@ export default class UNOGameArea extends GameArea<UNOGame> {
           if (loserDocExists) {
             // want to increment the loss for this player
             await loserRef.update({
-              loss: FirebaseFirestore.FieldValue.increment(1),
+              loss: increment(1),
             });
           } else {
             // loser player doesnt yet exist in firebase, we need to add it

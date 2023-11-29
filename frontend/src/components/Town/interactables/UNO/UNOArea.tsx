@@ -2,22 +2,16 @@ import {
   GameResult,
   GameStatus,
   InteractableID,
+  PlayerData,
 } from '../../../../../../shared/types/CoveyTownSocket';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useInteractableAreaController } from '../../../../classes/TownController';
 import UNOAreaController from '../../../../classes/interactable/UNOAreaController';
 import {
-  Accordion,
-  AccordionButton,
-  AccordionIcon,
-  AccordionItem,
-  AccordionPanel,
-  Box,
   Button,
   Container,
   Divider,
   GridItem,
-  Heading,
   HStack,
   List,
   ListItem,
@@ -35,27 +29,6 @@ import useTownController from '../../../../hooks/useTownController';
 import GameAreaInteractable from '../GameArea';
 import UNOTable from './UNOTable';
 import UNOLeaderboard from './UNOLeaderboard';
-
-function LeaderboardModal({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}): JSX.Element {
-  return isOpen ? (
-    <Modal aria-label='leaderboard' size='md' isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent alignItems='center' paddingY='30px'>
-        <ModalCloseButton />
-        <b>{'UNO Leaderboard'}</b>
-        <UNOLeaderboard />
-      </ModalContent>
-    </Modal>
-  ) : (
-    <></>
-  );
-}
 
 /**
  * Holds the rules for the UNO game in a closable modal.
@@ -93,6 +66,7 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
   const [isLBModalOpen, setIsLBModalOpen] = useState(false);
   const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
   // states to hold game values from controller
+  const [lb, setLb] = useState<PlayerData[] | undefined>(undefined);
   const [, setHistory] = useState<GameResult[]>(gameAreaController.history);
   const [status, setGameStatus] = useState<GameStatus>(gameAreaController.status);
   //const [observers, setObservers] = useState<PlayerController[]>(gameAreaController.observers);
@@ -132,16 +106,21 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
     const directionChanged = () => {
       setDirection(gameAreaController.playerDirection);
     };
+    const updateLeaderboard = (board: PlayerData[] | undefined) => {
+      setLb(board);
+    };
     //listeners from controller
     gameAreaController.addListener('gameUpdated', updateGame);
     gameAreaController.addListener('gameEnd', endGame);
     gameAreaController.addListener('turnChanged', turnChanged);
     gameAreaController.addListener('directionChanged', directionChanged);
+    gameAreaController.addListener('leaderboardFetched', updateLeaderboard);
     return () => {
       gameAreaController.removeListener('gameUpdated', updateGame);
       gameAreaController.removeListener('gameEnd', endGame);
       gameAreaController.removeListener('turnChanged', turnChanged);
       gameAreaController.removeListener('directionChanged', directionChanged);
+      gameAreaController.removeListener('leaderboardFetched', updateLeaderboard);
     };
   }, [gameAreaController, townController]);
 
@@ -314,8 +293,35 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
     }
   };
 
+  function LeaderboardModal({
+    isOpen,
+    onClose,
+  }: {
+    isOpen: boolean;
+    onClose: () => void;
+  }): JSX.Element {
+    return isOpen ? (
+      <Modal aria-label='leaderboard' size='md' isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent alignItems='center' paddingY='30px'>
+          <ModalCloseButton />
+          <b>{'UNO Leaderboard'}</b>
+          <UNOLeaderboard board={lb} />
+        </ModalContent>
+      </Modal>
+    ) : (
+      <></>
+    );
+  }
+
   const lbModalButton = (
-    <Button paddingX='20px' marginX='20px' onClick={() => setIsLBModalOpen(true)}>
+    <Button
+      paddingX='20px'
+      marginX='20px'
+      onClick={async () => {
+        await gameAreaController.leaderBoard();
+        setIsLBModalOpen(true);
+      }}>
       Leaderboard
     </Button>
   );
