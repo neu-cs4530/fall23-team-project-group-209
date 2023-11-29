@@ -183,15 +183,15 @@ describe('UNOTableTests', () => {
 
   const gameAreaController = new MockUNOAreaController();
 
-  function renderUNOTable() {
-    return render(
-      <ChakraProvider>
-        <TownControllerContext.Provider value={mockTownController}>
-          <UNOTable gameAreaController={gameAreaController} />
-        </TownControllerContext.Provider>
-      </ChakraProvider>,
-    );
-  }
+  //   function renderUNOTable() {
+  //     return render(
+  //       <ChakraProvider>
+  //         <TownControllerContext.Provider value={mockTownController}>
+  //           <UNOTable gameAreaController={gameAreaController} />
+  //         </TownControllerContext.Provider>
+  //       </ChakraProvider>,
+  //     );
+  //   }
 
   //   describe('data display', () => {
   //     it('should show our player and cards', () => {
