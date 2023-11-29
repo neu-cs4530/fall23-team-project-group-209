@@ -17,7 +17,7 @@ export default abstract class GameArea<
   GameType extends Game<GameState, unknown>,
 > extends InteractableArea {
   // this is added to the gameArea for UNOGameArea
-  protected _database?: Promise<PlayerData[]>;
+  protected _database?: PlayerData[];
 
   protected _game?: GameType;
 
@@ -34,8 +34,12 @@ export default abstract class GameArea<
   /**
    * Returns promise for list of all data from players in database
    */
-  public get database(): Promise<PlayerData[]> | undefined {
+  public get database(): PlayerData[] | undefined {
     return this._database;
+  }
+
+  public set database(db: PlayerData[] | undefined) {
+    this._database = db;
   }
 
   public toModel(): GameAreaModel<GameType['state']> {
