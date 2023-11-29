@@ -46,7 +46,7 @@ describe('[] UNOAreaController', () => {
     return p;
   });
 
-  const mockDatabase = mock<Promise<PlayerData[]>>();
+  const mockDatabase = mock<PlayerData[]>();
 
   function UNOAreaControllerWithProp({
     _id,

@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import admin from 'firebase-admin';
+import { cert } from 'firebase-admin/app';
 import InvalidParametersError, {
   GAME_ID_MISSMATCH_MESSAGE,
   GAME_NOT_IN_PROGRESS_MESSAGE,
@@ -20,9 +21,10 @@ import {
 import GameArea from './GameArea';
 import UNOGame from './UNOGame';
 // below is the stuff to set up the database, which will be updated in this class
+import serviceAccount from './leaderboard-Service-Keys.json';
 
 admin.initializeApp({
-  credential: admin.credential.cert('./leaderboard-Service-Keys.json'),
+  credential: cert(serviceAccount as admin.ServiceAccount),
   databaseURL: 'https://leaderboard-4cc7e-default-rtdb.firebaseio.com',
 });
 
@@ -38,8 +40,6 @@ export default class UNOGameArea extends GameArea<UNOGame> {
   protected getType(): InteractableType {
     return 'UNOArea';
   }
-
-  protected _database?: Promise<PlayerData[]> = this._createLeaderboardArray();
 
   /**
    * Informs all listeners that the state of the game has been changed by emitting,
@@ -114,7 +114,7 @@ export default class UNOGameArea extends GameArea<UNOGame> {
    *  can use
    * @returns  a promise to a list of playerdata objects that are created from hhe datbase.
    */
-  private async _createLeaderboardArray(): Promise<PlayerData[]> {
+  private async _createLeaderboardArray(): Promise<void> {
     const board: PlayerData[] = [];
     const querySnap = await playerRef.get();
     const listOfPlayers = querySnap.docs;
@@ -123,7 +123,7 @@ export default class UNOGameArea extends GameArea<UNOGame> {
       const playerData: PlayerData = { id: pData.id, wins: pData.wins, loss: pData.loss };
       board.push(playerData);
     });
-    return board;
+    this._database = board;
   }
 
   /**
@@ -212,7 +212,7 @@ export default class UNOGameArea extends GameArea<UNOGame> {
     if (command.type === 'JoinAI') {
       const game = this._game;
       this._validateGameInfo(game, command.gameID);
-      game?.joinAI(command.difficulty);
+      // game?.joinAI(command.difficulty);
       if (game) {
         this._stateUpdated(game.toModel());
         return { gameID: game.id } as InteractableCommandReturnType<CommandType>;
@@ -224,6 +224,14 @@ export default class UNOGameArea extends GameArea<UNOGame> {
       game?.colorChange(command.color as CardColor);
       if (game) {
         this._stateUpdated(game.toModel());
+      }
+      return undefined as InteractableCommandReturnType<CommandType>;
+    }
+    if (command.type === 'Leaderboard') {
+      const game = this._game;
+      this._validateGameInfo(game, command.gameID);
+      if (game) {
+        this._createLeaderboardArray();
       }
       return undefined as InteractableCommandReturnType<CommandType>;
     }
