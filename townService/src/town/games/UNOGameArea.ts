@@ -54,11 +54,12 @@ export default class UNOGameArea extends GameArea<UNOGame> {
         const winnerID = updatedState.state.winner;
         const winnerRef = playerRef.doc(winnerID);
         const doc = await winnerRef.get();
+        const data = doc.data();
         const doesExist = doc.exists;
-        if (doesExist) {
-          // want to increment the wins for this player
+        if (doesExist && data) {
+          const currWins = data.wins;
           await winnerRef.update({
-            wins: FirebaseFirestore.FieldValue.increment(1),
+            wins: currWins + 1,
           });
         } else {
           // winner player doesnt exist in firebase, we need to add it
@@ -74,20 +75,21 @@ export default class UNOGameArea extends GameArea<UNOGame> {
         losers.forEach(async loser => {
           const loserRef = playerRef.doc(loser);
           const loserDoc = await loserRef.get();
+          const loserData = loserDoc.data();
           const loserDocExists = loserDoc.exists;
-          if (loserDocExists) {
-            // want to increment the loss for this player
+          if (loserDocExists && loserData) {
+            const currLoss = loserData.loss;
             await loserRef.update({
-              loss: FirebaseFirestore.FieldValue.increment(1),
+              loss: currLoss + 1,
             });
           } else {
             // loser player doesnt yet exist in firebase, we need to add it
-            const loserData = {
+            const loserInfo = {
               id: loser,
               wins: 0,
               loss: 1,
             };
-            await playerRef.doc(loser).set(loserData);
+            await playerRef.doc(loser).set(loserInfo);
           }
         });
       } else {
