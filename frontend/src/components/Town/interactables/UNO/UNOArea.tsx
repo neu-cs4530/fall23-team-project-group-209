@@ -67,7 +67,7 @@ function UNOArea({ interactableID }: { interactableID: InteractableID }): JSX.El
   const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
   // states to hold game values from controller
   const [lb, setLb] = useState<PlayerData[] | undefined>(undefined);
-  const [, setHistory] = useState<GameResult[]>(gameAreaController.history);
+  const [history, setHistory] = useState<GameResult[]>(gameAreaController.history);
   const [status, setGameStatus] = useState<GameStatus>(gameAreaController.status);
   //const [observers, setObservers] = useState<PlayerController[]>(gameAreaController.observers);
   const [inGame, setInGame] = useState(gameAreaController.isPlayer);

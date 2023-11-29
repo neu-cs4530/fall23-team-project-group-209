@@ -15,21 +15,14 @@ import React, { useEffect, useState } from 'react';
 import UNOAreaController from '../../../../classes/interactable/UNOAreaController';
 import PlayerController from '../../../../classes/PlayerController';
 import useTownController from '../../../../hooks/useTownController';
-import { Card as PlayerCard, CardColor } from '../../../../types/CoveyTownSocket';
+import { Card as PlayerCard } from '../../../../types/CoveyTownSocket';
 
 export type UNOGameProps = {
   gameAreaController: UNOAreaController;
 };
 
 // function to create front card sprite
-function RenderCard({
-  card,
-  onClick,
-}: {
-  card: PlayerCard;
-  deckColor?: CardColor;
-  onClick?: () => void;
-}): JSX.Element {
+function RenderCard({ card, onClick }: { card: PlayerCard; onClick?: () => void }): JSX.Element {
   const cardText =
     card.rank === 'Reverse'
       ? 'R'
@@ -145,6 +138,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
   const [othersCards, setOthersCards] = useState(gameAreaController.othersCards);
   const [ourTurn, setOurTurn] = useState(gameAreaController.isOurTurn);
   const [whoseTurn, setWhoseTurn] = useState(gameAreaController.whoseTurn);
+  const [isPlayer, setIsPlayer] = useState(gameAreaController.isPlayer);
   const [cardChosen, setCardChosen] = useState<PlayerCard | undefined>(undefined); //used for wild and +4
 
   useEffect(() => {
@@ -158,6 +152,7 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
       setOthersCards(gameAreaController.othersCards);
       setOurTurn(gameAreaController.isOurTurn);
       setWhoseTurn(gameAreaController.whoseTurn);
+      setIsPlayer(gameAreaController.isPlayer);
       if (gameAreaController.topCard) {
         setTopCard(gameAreaController.topCard);
       }
@@ -275,12 +270,20 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
               theirTurn={playerList[1].id === whoseTurn?.id || false}
             />
           </HStack>
-          <RenderPlayer
-            username={playerList[0].userName}
-            cards={cards}
-            onClick={onCardClick}
-            isYourTurn={ourTurn}
-          />
+          {isPlayer ? (
+            <RenderPlayer
+              username={playerList[0].userName}
+              cards={cards}
+              onClick={onCardClick}
+              isYourTurn={ourTurn}
+            />
+          ) : (
+            <RenderOpponent
+              username={playerList[0].userName}
+              cardCount={othersCards?.get(playerList[0].id) ?? 0}
+              theirTurn={playerList[0].id === whoseTurn?.id || false}
+            />
+          )}
         </VStack>
       );
     } else if (playerList.at(2)) {
@@ -303,12 +306,20 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
             <RenderCard card={topCard} />
             <RenderDeck onClick={onDeckClick} />
           </HStack>
-          <RenderPlayer
-            username={playerList[0].userName}
-            cards={cards}
-            onClick={onCardClick}
-            isYourTurn={ourTurn}
-          />
+          {isPlayer ? (
+            <RenderPlayer
+              username={playerList[0].userName}
+              cards={cards}
+              onClick={onCardClick}
+              isYourTurn={ourTurn}
+            />
+          ) : (
+            <RenderOpponent
+              username={playerList[0].userName}
+              cardCount={othersCards?.get(playerList[0].id) ?? 0}
+              theirTurn={playerList[0].id === whoseTurn?.id || false}
+            />
+          )}
         </VStack>
       );
     } else if (playerList.at(1)) {
@@ -323,12 +334,20 @@ export default function UNOTable({ gameAreaController }: UNOGameProps): JSX.Elem
             <RenderCard card={topCard} />
             <RenderDeck onClick={onDeckClick} />
           </HStack>
-          <RenderPlayer
-            username={playerList[0].userName}
-            cards={cards}
-            onClick={onCardClick}
-            isYourTurn={ourTurn}
-          />
+          {isPlayer ? (
+            <RenderPlayer
+              username={playerList[0].userName}
+              cards={cards}
+              onClick={onCardClick}
+              isYourTurn={ourTurn}
+            />
+          ) : (
+            <RenderOpponent
+              username={playerList[0].userName}
+              cardCount={othersCards?.get(playerList[0].id) ?? 0}
+              theirTurn={playerList[0].id === whoseTurn?.id || false}
+            />
+          )}
         </VStack>
       );
     } else return <></>;

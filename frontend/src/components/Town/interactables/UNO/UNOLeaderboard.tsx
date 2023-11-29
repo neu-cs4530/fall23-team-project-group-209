@@ -18,7 +18,6 @@ export default function UNOLeaderboard({
 }: {
   board: PlayerData[] | undefined;
 }): JSX.Element {
-  if (board && board[0]) console.log(board[0]);
   return board ? (
     <Table>
       <Thead>

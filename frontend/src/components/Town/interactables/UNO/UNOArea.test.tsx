@@ -71,8 +71,6 @@ class MockUNOAreaController extends UNOAreaController {
 
   mockCurrentGame: GameArea<UNOGameState> | undefined = undefined;
 
-  mockGamePiece: 'X' | 'O' = 'X';
-
   mockIsActive = false;
 
   mockHistory: GameResult[] = [];

@@ -382,7 +382,10 @@ export default class UNOAreaController extends GameAreaController<UNOGameState, 
   }
 
   public async leaderBoard() {
-    const board = await this._model.database;
+    const board: PlayerData[] | undefined = await this._model.database;
+    if (!board) console.log('undefined');
+    const arr: PlayerData[] = [{ id: 'hello', wins: 3, loss: 500 }];
+    console.log(arr);
     this.emit('leaderboardFetched', board);
   }
 
