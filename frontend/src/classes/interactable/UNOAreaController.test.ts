@@ -4,6 +4,7 @@ import {
   GameArea,
   GameResult,
   GameStatus,
+  PlayerData,
   UNOGameState,
   UNOMove,
   UNOPlayer,
@@ -44,6 +45,8 @@ describe('[] UNOAreaController', () => {
     assert(p);
     return p;
   });
+
+  const mockDatabase = mock<Promise<PlayerData[]>>();
 
   function UNOAreaControllerWithProp({
     _id,
@@ -86,6 +89,7 @@ describe('[] UNOAreaController', () => {
         occupants: occs,
         history: history || [],
         type: 'UNOArea',
+        database: mockDatabase,
         game: undefinedGame
           ? undefined
           : {
