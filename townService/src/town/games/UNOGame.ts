@@ -5,7 +5,6 @@ import InvalidParametersError, {
   NOT_PLAYER_TURN,
   PLAYER_ALREADY_IN_GAME_MESSAGE,
   PLAYER_NOT_FOUND_MESSAGE,
-  PLAYER_NOT_IN_GAME_MESSAGE,
 } from '../../lib/InvalidParametersError';
 import Player from '../../lib/Player';
 import {
