@@ -5,7 +5,6 @@ import InvalidParametersError, {
   NOT_PLAYER_TURN,
   PLAYER_ALREADY_IN_GAME_MESSAGE,
   PLAYER_NOT_FOUND_MESSAGE,
-  PLAYER_NOT_IN_GAME_MESSAGE,
 } from '../../lib/InvalidParametersError';
 import Player from '../../lib/Player';
 import {
@@ -670,9 +669,9 @@ export default class UNOGame extends Game<UNOGameState, UNOMove> {
 
   protected _leave(player: Player): void {
     // Check if the player is in the game
-    if (!this.state.players.some(p => p.id === player.id)) {
-      throw new InvalidParametersError(PLAYER_NOT_IN_GAME_MESSAGE);
-    }
+    // if (!this.state.players.some(p => p.id === player.id)) {
+    //   throw new InvalidParametersError(PLAYER_NOT_IN_GAME_MESSAGE);
+    // }
 
     // Remove the player who is leaving
     this.state.players = this.state.players.filter(p => p.id !== player.id);
